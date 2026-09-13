@@ -7,6 +7,11 @@ dataset:
   sites: [switzerland, hungary, va, cleveland]
   test_size: 0.2
   random_seed: 42
+  # Adversarial reveal (documented, off by default). Set site to e.g. "va" to flip that
+  # fraction of the site's TRAIN labels. Test rows are never touched. The agent is not told;
+  # the run header, metrics and lab report say so, and the effect ledger + Weave history
+  # are how the agent should discover that this acquisition hurt.
+  poison: {site: null, label_noise: 0.4}
 models:                        # the shapes the agent may choose between
   - knn
   - logistic_regression
@@ -16,4 +21,9 @@ models:                        # the shapes the agent may choose between
 llm:
   diagnosis_model: openai/gpt-oss-120b   # pick any model available on W&B Inference
   temperature: 0.2
+action_head:
+  confidence_floor: 0.40       # Jev confidence below this -> escalate for a second opinion
+pricing:                       # USD per 1M tokens; null = unknown, cost is then not reported
+  typesafe: {input: null, output: null}
+  wandb_inference: {input: null, output: null}
 notebook_path: notebooks/lab_report.py

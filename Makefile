@@ -14,6 +14,9 @@ dry-run:          ## offline smoke of the full loop (no LLM, no upload)
 run:              ## the real loop (needs WANDB_API_KEY in .env)
 	$(PY) -m agentforge.loop --reset-notebook
 
+run-poison:       ## adversarial reveal: 40% label noise on VA's train rows (documented)
+	$(PY) -m agentforge.loop --reset-notebook --poison va --run-name poison_va
+
 test:             ## what CLAUDE.md requires before every commit
 	$(PY) -m pytest tests/ -x -q && $(PY) -m agentforge.loop --dry-run --iterations 2
 
@@ -23,5 +26,5 @@ report:           ## open the self-writing lab report
 reset:            ## wipe agent-written notebook cells + run metrics for a fresh demo
 	$(PY) -c "from agentforge.notebook_writer import reset_notebook; reset_notebook()" && rm -f runs/*.jsonl
 
-compare:          ## P4: TypeSafe vs Inference action-head eval in Weave
+compare:          ## three-way action-head leaderboard in Weave (TypeSafe / Inference / rules)
 	$(PY) scripts/compare_action_heads.py

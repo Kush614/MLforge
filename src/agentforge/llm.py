@@ -11,6 +11,7 @@ from .tracing import config
 load_dotenv()
 
 _client_cache: OpenAI | None = None
+LAST_USAGE: dict = {}   # tokens of the most recent complete() call, for per-decision accounting
 
 
 def available() -> bool:
@@ -46,6 +47,10 @@ def complete(system: str, user: str, temperature: float | None = None,
         messages=[{"role": "system", "content": system},
                   {"role": "user", "content": user}],
     )
+    u = getattr(resp, "usage", None)
+    LAST_USAGE.clear()
+    LAST_USAGE.update({"input_tokens": getattr(u, "prompt_tokens", None),
+                       "output_tokens": getattr(u, "completion_tokens", None)})
     return resp.choices[0].message.content or ""
 
 

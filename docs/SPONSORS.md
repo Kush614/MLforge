@@ -50,18 +50,35 @@ traces where model-switching already failed — so it acquired the Hungary site 
   (0.29–0.45) when the agent is stuck — an honest uncertainty signal judges can see.
 - Provider chain in `decide_action()`: `typesafe` → `wandb_inference` → `heuristic`,
   every attempt recorded, provider label carried into the trace + lab report.
-- **Comparison eval** (`make compare`, a `weave.Evaluation` over the run's recorded
-  diagnoses; scorers `valid_typed_action`, `agrees_with_run`, `latency_s`, and
-  `accuracy_delta` = apply the proposed action to the recorded state, retrain on the same
-  fixed split, measure the held-out delta). First live result on 7 diagnoses:
+- **Confidence gate — the agent knows when it doesn't know.** `action_head.confidence_floor`
+  (0.40): when Jev's confidence on `action_kind` is below it, the loop escalates to a second
+  opinion (W&B Inference critiques the proposal against the effect history and may override
+  with one validated action). Trace + report show floor, confidence, verdict, critique. In the
+  adversarial run Jev's confidence fell 0.89 → 0.26 the decision after the poisoned site hurt.
+- **Memory is binding, not advisory.** Hyperparameter settings already applied to a family
+  are withdrawn from the options Jev sees (and `tune_hyperparams` disappears when none remain);
+  tried families/ops are marked. This stopped a +0.114/−0.114 preset oscillation.
+- **Per-decision accounting**: latency, input/output tokens, and `$` only if `pricing:` in
+  `config.yaml` is filled (it is null → the report says "n/a (no price sheet)", never a guess).
+- **Comparison eval / leaderboard** (`make compare`, a `weave.Evaluation` over the run's
+  recorded diagnoses; scorers `valid_typed_action`, `agrees_with_run`, `latency_s`, `tokens`,
+  `usd`, and `accuracy_delta` = apply the proposed action to the recorded state, retrain on
+  the same fixed split, measure the held-out delta). Three heads, live result on the 9
+  diagnoses of the adversarial run:
 
-  | head | valid typed action | mean counterfactual Δacc | mean latency |
-  |---|---|---|---|
-  | TypeSafe Jev 1.13 | 7/7 | **+0.086** | **~0.05–0.3 s** |
-  | W&B Inference gpt-oss-120b | 7/7 | +0.033 | 11.8 s |
+  | head | valid typed action | agrees w/ run | mean counterfactual Δacc | mean latency | mean tokens |
+  |---|---|---|---|---|---|
+  | heuristic (rules) | 9/9 | 5/9 | +0.054 | 0.00 s | 0 |
+  | **TypeSafe Jev 1.13** | 9/9 | 8/9 | +0.046 | **0.35 s** | 2469 |
+  | W&B Inference gpt-oss-120b | 9/9 | 5/9 | +0.038 | 7.19 s | 2482 |
+
+  Honest read: n=9, differences in Δ are within noise; the rule baseline is competitive on a
+  toy dataset. What is not noise: Jev is ~20× faster than the reasoning model at equal token
+  cost and produces a probability on every option. The script prints `!! fell back` if any
+  head silently degrades to the heuristic, so a fallback can never pose as a provider.
 
 Demo line: *"The reasoning model explains; the TypeSafe model decides — in 300 ms, with a
-probability on every option — and the decision is measurably better on this data."*
+probability on every option — and when its confidence drops, it asks for a second opinion."*
 
 ## ARIA — the code-fixing arm
 - `request_code_fix` is the escape hatch when the four data/model actions can't express
@@ -70,6 +87,11 @@ probability on every option — and the decision is measurably better on this da
 - Close the loop by writing `aria_requests/NNN.applied` (`aria ...` or `manual-assisted ...`);
   the next iteration re-runs `pytest`, records `applied_by` + `acceptance_passed` in Weave
   and the lab report. Manual assistance is labeled, never hidden.
+- **Self-extending action space.** The fix request now asks ARIA to `register_model(...)` or
+  `register_feature_op(...)` in `src/agentforge/extensions.py`. When `NNN.applied` lands the
+  loop reloads the module, logs `action_space_added`, and the new family/op appears in Jev's
+  questions, the Inference schema and the heuristic on the next iteration. The agent expands
+  its own action space; the trace says who expanded it.
 - Hit the ARIA table first: one live fix, even semi-automated, is the "Should" in SPEC §6.
 
 ## marimo — the self-writing lab report
@@ -77,7 +99,19 @@ probability on every option — and the decision is measurably better on this da
   accuracy/gap/learning curve, effect of the previous action, diagnosis in the agent's
   words, evidence tags, cited trace IDs, decision provider.
 - Header cell charts accuracy + train accuracy vs. the target and the 0.787 published
-  baseline from `runs/latest.jsonl`. `make report` opens it; `make reset` clears it.
+  baseline from `runs/latest.jsonl`, auto-refreshing every 5 s, with Jev's confidence on
+  each point. `make report` opens it; `make reset` clears it.
+- **Cockpit — the report is where the human steers.** A slider (target accuracy) and a
+  multiselect (freeze sites) write `runs/controls.json`; the loop reads it at the top of every
+  iteration and records "target overridden / sites frozen by human via lab report" in the
+  trace, metrics and the report itself. marimo is the control surface, not just the log.
+
+## Adversarial reveal (`--poison va`)
+`python -m agentforge.loop --poison va` flips 40% of VA's TRAIN labels (test rows untouched;
+documented in the run header, every metrics row and every report section). The agent is not
+told. Live result: acquiring VA scored Δ −0.038 in the effect ledger and Jev's confidence
+collapsed on the next decision; the run plateaued at 0.83 and stopped honestly — "more data
+hurt, and its own traces show it". Without `--poison` the same loop beats 0.85.
 
 ## Q&A honesty sheet
 - Stubbed vs real: ARIA live fix (protocol built, not yet executed), hosted MCP (not wired;

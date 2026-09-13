@@ -15,7 +15,8 @@ def test_dry_run_loop_end_to_end(tmp_path):
     text = nb.read_text()
     assert "def _iter_0(mo)" in text and "## Iteration 0" in text
     compile(text, str(nb), "exec")  # the agent-written notebook is valid Python
-    rows = [json.loads(l) for l in (ROOT / "runs" / "pytest.jsonl").read_text().splitlines()]
+    from agentforge.state import RUNS_DIR
+    rows = [json.loads(l) for l in (RUNS_DIR / "pytest.jsonl").read_text().splitlines()]
     assert rows and rows[0]["iteration"] == 0 and "action" in rows[0]
 
 
@@ -48,3 +49,27 @@ def test_aria_handoff_protocol(tmp_path, monkeypatch):
     recs = ah.check_for_patches()
     assert len(recs) == 1 and recs[0]["applied_by"] == "manual-assisted" and recs[0]["acceptance_passed"]
     assert ah.check_for_patches() == []                      # recorded once, never double counted
+
+
+def test_poison_flips_train_labels_only():
+    from agentforge import data as d
+    clean = d.fixed_split(["cleveland"], 0.2, 42, allow_synthetic=True)
+    poisoned = d.fixed_split(["cleveland"], 0.2, 42, allow_synthetic=True, poison={"site": "cleveland", "label_noise": 0.4})
+    tr_c, te_c = clean["cleveland"]; tr_p, te_p = poisoned["cleveland"]
+    flipped = (tr_c["target"].values != tr_p["target"].values).mean()
+    assert 0.35 < flipped < 0.45
+    assert (te_c["target"].values == te_p["target"].values).all()      # test set untouched
+
+
+def test_cockpit_controls_are_applied_and_recorded(tmp_path, monkeypatch):
+    from agentforge import loop
+    ctl = tmp_path / "controls.json"
+    monkeypatch.setattr(loop, "CONTROLS_PATH", ctl)
+    ctl.write_text(json.dumps({"target_accuracy": 0.99, "frozen_sites": ["va", "hungary"]}))
+    nb = tmp_path / "report.py"
+    nb.write_text((ROOT / "notebooks" / "lab_report.py").read_text())
+    loop.main(["--dry-run", "--iterations", "1", "--notebook", str(nb), "--run-name", "pytest_ctl"])
+    from agentforge.state import RUNS_DIR
+    rows = [json.loads(l) for l in (RUNS_DIR / "pytest_ctl.jsonl").read_text().splitlines()]
+    assert rows[0]["target"] == 0.99 and rows[0]["controls"]["frozen_sites"] == ["va", "hungary"]
+    assert "Human steering via this report" in nb.read_text()

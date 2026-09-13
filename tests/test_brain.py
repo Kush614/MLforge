@@ -141,3 +141,89 @@ def test_typesafe_failure_falls_back_to_inference_labeled(monkeypatch):
     out = typesafe_client.decide_action({"evidence_tags": []}, [], "knn")
     assert out["provider"] == "wandb_inference_fallback (typesafe failed)"
     assert out["attempts"][0]["provider"] == "typesafe" and "RuntimeError" in out["attempts"][0]["error"]
+
+
+# ---------------------------------------------------------------- confidence gate + accounting
+def test_decide_action_carries_accounting(monkeypatch):
+    monkeypatch.setattr(typesafe_client, "typesafe_system_one", _fake_system_one("acquire_data", site="hungary"))
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test")
+    out = typesafe_client.decide_action({"reasoning": "r", "evidence_tags": []}, ["hungary"], "knn")
+    a = out["accounting"]
+    assert a["provider"] == "typesafe" and a["latency_s"] >= 0 and a["usd"] is None  # no price sheet -> no $ claim
+    out = typesafe_client.decide_action({"evidence_tags": []}, ["hungary"], "knn", force_provider="heuristic")
+    assert out["provider"] == "heuristic" and out["accounting"]["input_tokens"] == 0
+
+
+def test_second_opinion_override_is_validated(monkeypatch):
+    monkeypatch.setattr(llm, "complete", lambda *a, **k: json.dumps(
+        {"verdict": "override", "critique": "history shows tuning knn did nothing twice",
+         "action": {"kind": "acquire_data", "site": "va", "reason": ""}}))
+    proposal = {"action": {"action": {"kind": "tune_hyperparams", "params": {}, "reason": ""}},
+                "typesafe": {"confidence": 0.29, "probabilities": {"tune_hyperparams": 0.4}}}
+    out = typesafe_client.second_opinion({"reasoning": "r"}, proposal, ["va"], "knn", [], [], "iter 3: tune -> +0.000")
+    assert out["verdict"] == "override" and out["action"]["action"]["site"] == "va"
+    # an override naming an unoffered site is rejected -> proposal kept, labeled
+    monkeypatch.setattr(llm, "complete", lambda *a, **k: json.dumps(
+        {"verdict": "override", "critique": "x", "action": {"kind": "acquire_data", "site": "cleveland", "reason": ""}}))
+    out = typesafe_client.second_opinion({"reasoning": "r"}, proposal, ["va"], "knn", [], [], "")
+    assert out["verdict"] == "accept" and out["error"]
+
+
+# ---------------------------------------------------------------- self-extending action space
+def test_aria_registered_extension_enters_action_space():
+    from agentforge import extensions
+    from agentforge.train import build_pipeline
+    from agentforge.typesafe_client import build_questions
+    from sklearn.ensemble import ExtraTreesClassifier
+    from sklearn.preprocessing import QuantileTransformer
+    try:
+        extensions.register_model("extra_trees", lambda hp: ExtraTreesClassifier(random_state=0, **hp), "randomised trees", grid={"n_estimators": [50]})
+        extensions.register_feature_op("quantile", lambda: QuantileTransformer(n_quantiles=20), "rank transform")
+        env = ActionEnvelope.model_validate({"action": {"kind": "switch_model", "family": "extra_trees", "reason": ""}})
+        assert env.action.family == "extra_trees"
+        ActionEnvelope.model_validate({"action": {"kind": "transform_features", "op": "quantile", "reason": ""}})
+        import numpy as np
+        X = np.random.default_rng(0).normal(size=(80, 13)); y = (X[:, 0] > 0).astype(int)
+        m = build_pipeline("extra_trees", ["quantile"], {"n_estimators": 50}).fit(X, y)
+        assert m.predict(X).shape == (80,)
+        q = build_questions([], "knn", [], [])
+        assert "ARIA-added" in q["model_family"].criteria["extra_trees"] and "quantile" in q["feature_op"].criteria
+        # exhaustion now prefers the ARIA-added op before asking for another code fix
+        out = heuristic_decide({"evidence_tags": []}, [], "knn", ["onehot"],
+                               ["random_forest", "gradient_boosting", "logistic_regression", "svm", "extra_trees"])
+        assert out["action"]["action"] == {"kind": "transform_features", "op": "quantile", "reason": "try the ARIA-added feature op"}
+    finally:
+        extensions.EXTRA_MODELS.clear(); extensions.EXTRA_FEATURE_OPS.clear()
+    with pytest.raises(Exception):
+        ActionEnvelope.model_validate({"action": {"kind": "switch_model", "family": "extra_trees", "reason": ""}})
+
+
+def test_tried_hyperparams_are_withdrawn_from_the_head():
+    from agentforge.typesafe_client import build_questions, HYPERPARAM_PRESETS
+    sigs = [json.dumps(v[1], sort_keys=True) for v in HYPERPARAM_PRESETS["gradient_boosting"].values()]
+    q = build_questions([], "gradient_boosting", [], [], tried_hyperparams=sigs[:1])
+    assert set(q["hyperparam_preset"].criteria) == set(list(HYPERPARAM_PRESETS["gradient_boosting"])[1:])
+    q = build_questions([], "gradient_boosting", [], [], tried_hyperparams=sigs)
+    assert "tune_hyperparams" not in q["action_kind"].criteria and "hyperparam_preset" not in q
+
+
+def test_act_records_tried_hyperparams():
+    from agentforge.act import act
+    from agentforge.state import LoopState
+    st = LoopState(sites=["a"], unrevealed_sites=[], model_family="random_forest")
+    act({"action": {"kind": "tune_hyperparams", "params": {"max_depth": 4, "min_samples_leaf": 5}, "reason": ""}}, st)
+    assert st.tried_hyperparams["random_forest"] == ['{"max_depth": 4, "min_samples_leaf": 5}']
+
+
+def test_second_opinion_tolerates_nested_envelope_and_keeps_critique(monkeypatch):
+    monkeypatch.setattr(llm, "complete", lambda *a, **k: json.dumps(
+        {"verdict": "override", "critique": "tuning gave 0.000 twice",
+         "action": {"action": {"kind": "switch_model", "family": "gradient_boosting", "reason": ""}}}))
+    proposal = {"action": {"action": {"kind": "tune_hyperparams", "params": {}, "reason": ""}},
+                "typesafe": {"confidence": 0.3, "probabilities": {}}}
+    out = typesafe_client.second_opinion({}, proposal, [], "svm", [], [], "")
+    assert out["verdict"] == "override" and out["action"]["action"]["family"] == "gradient_boosting"
+    monkeypatch.setattr(llm, "complete", lambda *a, **k: json.dumps(
+        {"verdict": "override", "critique": "keep this text", "action": {"kind": "switch_model", "family": "nope"}}))
+    out = typesafe_client.second_opinion({}, proposal, [], "svm", [], [], "")
+    assert out["verdict"] == "accept" and out["critique"] == "keep this text" and "rejected" in out["error"]

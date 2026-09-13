@@ -6,7 +6,8 @@ from pathlib import Path
 
 from .tracing import ROOT
 
-RUNS_DIR = ROOT / "runs"
+import os
+RUNS_DIR = Path(os.environ.get("AGENTFORGE_RUNS_DIR") or ROOT / "runs")   # tests point this elsewhere
 
 
 @dataclass
@@ -36,6 +37,7 @@ class LoopState:
     pending_trace_id: str | None = None
     pending_accuracy: float | None = None
     tried_families: list[str] = field(default_factory=list)
+    tried_hyperparams: dict = field(default_factory=dict)   # family -> [json signature of params applied]
 
     # ---- effect bookkeeping -------------------------------------------------
     def record_action(self, desc: str, accuracy_before: float, trace_id: str | None = None):
@@ -79,12 +81,13 @@ class LoopState:
             "feature_ops": list(self.feature_ops),
             "hyperparams": dict(self.hyperparams),
             "n_history": len(self.history),
+            "tried_hyperparams": {k: list(v) for k, v in self.tried_hyperparams.items()},
         }
 
 
 def log_metrics(run_name: str, row: dict) -> Path:
     """Append one JSON line per iteration to runs/<run_name>.jsonl (read by the lab report)."""
-    RUNS_DIR.mkdir(exist_ok=True)
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
     p = RUNS_DIR / f"{run_name}.jsonl"
     with p.open("a") as f:
         f.write(json.dumps({"ts": time.time(), **row}) + "\n")

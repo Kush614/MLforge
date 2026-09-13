@@ -43,6 +43,26 @@ def append_iteration(iteration: int, eval_result: dict, diagnosis: dict, action_
         t = extra["typesafe"]
         probs = ", ".join(f"{k} {v:.2f}" for k, v in sorted(t["probabilities"].items(), key=lambda kv: -kv[1]))
         ts_md = f"\n**Action-head probabilities** (TypeSafe Jev, confidence {t['confidence']:.2f}): {probs}\n"
+    esc_md = ""
+    if extra.get("escalation"):
+        e = extra["escalation"]
+        esc_md = (f"\n**Confidence gate:** Jev confidence {e['jev_confidence']:.2f} < floor {e['floor']} → second opinion "
+                  f"(W&B Inference) said **{e['verdict']}**: {_md_escape(e.get('critique', ''))}\n")
+    acct_md = ""
+    if extra.get("accounting"):
+        a = extra["accounting"]
+        usd = f", ${a['usd']:.5f}" if a.get("usd") is not None else ""
+        acct_md = f"\n**Decision cost:** {a['latency_s']:.2f} s, tokens in/out {a.get('input_tokens')}/{a.get('output_tokens')}{usd} (`{a['provider']}`)\n"
+    pz_md = ""
+    if extra.get("poison"):
+        pz = extra["poison"]
+        pz_md = (f"\n> ⚠️ **Adversarial reveal active** (documented): {pz['label_noise']:.0%} of `{pz['site']}` train labels "
+                 f"flipped; test set clean; the agent was not told.\n")
+    ctl_md = ""
+    if extra.get("frozen_now") or (extra.get("controls") or {}).get("target_accuracy"):
+        c = extra.get("controls") or {}
+        ctl_md = (f"\n**Human steering via this report:** target={c.get('target_accuracy', 'default')}, "
+                  f"frozen sites={c.get('frozen_sites', [])}\n")
     aria_md = ""
     if extra.get("aria"):
         aria_md = "\n**ARIA fixes detected this iteration:** " + "; ".join(
@@ -61,7 +81,7 @@ def append_iteration(iteration: int, eval_result: dict, diagnosis: dict, action_
 **Evidence tags:** {tags}{cited_md}
 
 **Action taken** (decided by *{_md_escape(provider)}*): `{_md_escape(action_desc)}`
-{ts_md}{aria_md}
+{ts_md}{esc_md}{acct_md}{aria_md}{pz_md}{ctl_md}
 ---"""
     cell = f'''
 

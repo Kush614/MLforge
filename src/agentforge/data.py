@@ -86,7 +86,8 @@ def fingerprint(df: pd.DataFrame) -> str:
     return hashlib.sha1(pd.util.hash_pandas_object(df, index=False).values).hexdigest()[:12]
 
 
-def fixed_split(all_sites: list[str], test_size: float, seed: int, allow_synthetic: bool = False) -> dict:
+def fixed_split(all_sites: list[str], test_size: float, seed: int, allow_synthetic: bool = False,
+                poison: dict | None = None) -> dict:
     """Per-site stratified train/test split, computed ONCE for every site (revealed or not).
 
     The test set is the union of every site's test rows, so it is identical on every
@@ -106,8 +107,20 @@ def fixed_split(all_sites: list[str], test_size: float, seed: int, allow_synthet
         df = df.dropna(subset=[TARGET]).reset_index(drop=True)
         strat = df[TARGET] if df[TARGET].nunique() > 1 and df[TARGET].value_counts().min() >= 2 else None
         tr, te = train_test_split(df, test_size=test_size, random_state=seed, stratify=strat)
-        parts[s] = (tr.reset_index(drop=True), te.reset_index(drop=True))
+        tr = tr.reset_index(drop=True)
+        if poison and poison.get("site") == s and poison.get("label_noise"):
+            tr = poison_labels(tr, float(poison["label_noise"]), seed)   # TRAIN rows only
+        parts[s] = (tr, te.reset_index(drop=True))
     return parts
+
+
+def poison_labels(train_df: pd.DataFrame, frac: float, seed: int) -> pd.DataFrame:
+    """Flip `frac` of the labels (documented adversarial site). Returns a copy."""
+    out = train_df.copy()
+    rng = np.random.default_rng(seed)
+    idx = rng.choice(len(out), size=int(round(frac * len(out))), replace=False)
+    out.loc[idx, TARGET] = 1 - out.loc[idx, TARGET]
+    return out
 
 
 def assemble(parts: dict, train_sites: list[str]):

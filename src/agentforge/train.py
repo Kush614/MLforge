@@ -11,6 +11,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransfo
 from sklearn.impute import SimpleImputer
 
 from .data import FEATURES, CATEGORICAL, POSITIVE_SKEWED
+from . import extensions
 
 MODEL_ZOO = {
     "knn": lambda hp: KNeighborsClassifier(**hp),
@@ -36,10 +37,22 @@ _LOG_IDX = [FEATURES.index(c) for c in POSITIVE_SKEWED]
 _OTHER_IDX = [i for i in range(len(FEATURES)) if i not in _CAT_IDX]
 
 
+def model_factory(family: str):
+    if family in MODEL_ZOO:
+        return MODEL_ZOO[family]
+    if family in extensions.EXTRA_MODELS:
+        return extensions.EXTRA_MODELS[family]["factory"]
+    raise KeyError(f"unknown model family {family!r}")
+
+
+def grid_for(family: str) -> dict:
+    return HYPERPARAM_GRID.get(family) or extensions.EXTRA_MODELS.get(family, {}).get("grid", {})
+
+
 def validate_hyperparams(family: str, params: dict) -> dict:
     """Keep only params in the family's grid, coerced to allowed values. Never raises:
     a bad suggestion becomes a no-op, which the effect record will show as delta 0."""
-    grid = HYPERPARAM_GRID.get(family, {})
+    grid = grid_for(family)
     clean = {}
     for k, v in params.items():
         if k not in grid:
@@ -67,6 +80,9 @@ def build_pipeline(model_family: str, feature_ops: list[str], hyperparams: dict)
     else:
         cat_idx, other_idx = _CAT_IDX, _OTHER_IDX
     steps.append(("impute", SimpleImputer(strategy="median")))
+    for op in feature_ops:                       # ARIA-registered ops run right after imputation
+        if op in extensions.EXTRA_FEATURE_OPS:
+            steps.append((f"ext_{op}", extensions.EXTRA_FEATURE_OPS[op]["factory"]()))
     if "onehot" in feature_ops:
         num_steps = [StandardScaler()] if "standardize" in feature_ops else ["passthrough"]
         steps.append(("encode", ColumnTransformer([
@@ -76,7 +92,7 @@ def build_pipeline(model_family: str, feature_ops: list[str], hyperparams: dict)
     elif "standardize" in feature_ops:
         steps.append(("scale", StandardScaler()))
     hp = validate_hyperparams(model_family, hyperparams)
-    steps.append(("clf", MODEL_ZOO[model_family](hp)))
+    steps.append(("clf", model_factory(model_family)(hp)))
     return Pipeline(steps)
 
 

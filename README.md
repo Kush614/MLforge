@@ -54,6 +54,18 @@ make test                  # pytest + dry-run, required before every commit
 - Every provider label (`wandb_inference`, `typesafe`, `heuristic_fallback (...)`) and
   history source (`weave_api` vs `local`) is recorded in the trace and the lab report.
 
+## What makes it more than "LLM picks an action"
+- **Confidence-gated decisions**: Jev's calibrated confidence below 0.40 → second opinion from
+  the reasoning model, which may override. Visible in trace + report.
+- **Binding memory**: settings already tried are withdrawn from the action head's options.
+- **Self-extending action space**: `request_code_fix` asks ARIA to register a new model/op in
+  `extensions.py`; the loop reloads it and the option appears next iteration.
+- **Adversarial reveal** (`--poison va`, documented): does the agent learn from its own ledger
+  that an acquisition hurt?
+- **Cockpit in the lab report**: target slider + site freeze, read by the loop each iteration.
+- **Three-way leaderboard** (`make compare`): TypeSafe vs Inference vs rules, scored by a real
+  counterfactual retrain on the same split, plus latency and tokens.
+
 ## ARIA handoff protocol (file-based)
 `request_code_fix` → `aria_requests/NNN.md`. When ARIA (or a human pasting ARIA's diff)
 has applied it, write `aria_requests/NNN.applied` with one line (`aria ...` or

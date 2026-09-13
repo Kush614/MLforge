@@ -1,5 +1,9 @@
 import os
+import tempfile
 import pytest
+
+# Tests write their metrics to a throwaway dir so they never clobber runs/latest.jsonl.
+os.environ["AGENTFORGE_RUNS_DIR"] = tempfile.mkdtemp(prefix="agentforge-test-runs-")
 
 # Tests never upload traces or call LLMs, whatever is in the developer's .env.
 # Empty strings (not pops): load_dotenv() never overrides an existing key, so a developer's

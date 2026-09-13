@@ -1,4 +1,4 @@
-"""P4: Weave comparison eval — TypeSafe vs W&B Inference as the action head.
+"""P4: Weave comparison eval — TypeSafe vs W&B Inference vs heuristic as the action head.
 
 Replays recorded diagnoses (runs/<run>.jsonl, written by the loop) through each
 provider with weave.Evaluation, so the comparison shows up side by side in Weave.
@@ -45,8 +45,11 @@ class ActionHead(weave.Model):
                             decision_context["model_family"], decision_context["feature_ops"],
                             decision_context["tried_families"],
                             history_summary=decision_context.get("history_summary", ""),
-                            force_provider=self.provider)
+                            force_provider=self.provider,
+                            tried_hyperparams=decision_context.get("tried_hyperparams"))
         out["latency_s"] = time.time() - t0
+        if "fallback" in out["provider"]:   # never let a silent fallback masquerade as the provider
+            print(f"  !! {self.provider} fell back: {out.get('attempts')}", flush=True)
         return out
 
 
@@ -88,6 +91,19 @@ def latency_s(output: dict) -> float:
     return output["latency_s"]
 
 
+@weave.op
+def tokens(output: dict) -> int | None:
+    a = output.get("accounting") or {}
+    if a.get("input_tokens") is None:
+        return None
+    return (a["input_tokens"] or 0) + (a.get("output_tokens") or 0)
+
+
+@weave.op
+def usd(output: dict) -> float | None:
+    return (output.get("accounting") or {}).get("usd")
+
+
 def load_examples(path: Path, limit: int) -> list[dict]:
     rows = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
     ex = [{"diagnosis": r["diagnosis"], "decision_context": r["decision_context"],
@@ -98,13 +114,42 @@ def load_examples(path: Path, limit: int) -> list[dict]:
 
 async def run(examples, providers):
     ev = weave.Evaluation(name="action_head_comparison", dataset=examples,
-                          scorers=[valid_typed_action, agrees_with_run, accuracy_delta, latency_s])
+                          scorers=[valid_typed_action, agrees_with_run, accuracy_delta, latency_s, tokens, usd])
     results = {}
     for prov in providers:
         print(f"== evaluating provider: {prov}")
         results[prov] = await ev.evaluate(ActionHead(provider=prov, name=f"head_{prov}"))
-        print(json.dumps(results[prov], indent=2, default=str))
+    print_leaderboard(results, len(examples))
     return results
+
+
+def _get(d, *path):
+    for k in path:
+        d = d.get(k) if isinstance(d, dict) else None
+        if d is None:
+            return None
+    return d
+
+
+def print_leaderboard(results: dict, n: int):
+    from rich.console import Console
+    from rich.table import Table
+    t = Table(title=f"action-head leaderboard ({n} recorded diagnoses; same fixed split; counterfactual retrain)")
+    for c in ("head", "valid action", "agrees w/ run", "mean Δacc", "mean latency", "mean tokens", "mean $"):
+        t.add_column(c)
+    rows = sorted(results.items(), key=lambda kv: -(_get(kv[1], "accuracy_delta", "delta", "mean") or -9))
+    for prov, r in rows:
+        d = _get(r, "accuracy_delta", "delta", "mean")
+        tok = _get(r, "tokens", "mean")
+        cost = _get(r, "usd", "mean")
+        t.add_row(prov,
+                  f"{_get(r, 'valid_typed_action', 'true_count')}/{n}",
+                  f"{_get(r, 'agrees_with_run', 'true_count')}/{n}",
+                  f"{d:+.3f}" if d is not None else "n/a",
+                  f"{_get(r, 'latency_s', 'mean'):.2f} s",
+                  f"{tok:.0f}" if tok is not None else "n/a",
+                  f"${cost:.5f}" if cost is not None else "n/a (no price sheet)")
+    Console().print(t)
 
 
 def main():
@@ -124,8 +169,7 @@ def main():
         print("TypeSafe not configured (TYPESAFE_API_KEY/TYPESAFE_BASE_URL) — skipping, not faking.")
     if llm.available():
         providers.append("wandb_inference")
-    if not providers:
-        sys.exit("no LLM provider configured")
+    providers.append("heuristic")      # the rule-based baseline every LLM head must beat
     asyncio.run(run(examples, providers))
 
 

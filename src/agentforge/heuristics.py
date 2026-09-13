@@ -5,6 +5,7 @@ These rules encode the same evidence tags the LLM is asked to use, so a dry run
 exercises the identical action space and effect bookkeeping as a live run."""
 import weave
 from .actions import ActionEnvelope
+from . import extensions
 
 FAMILY_ORDER = ["random_forest", "gradient_boosting", "logistic_regression", "svm", "knn"]
 
@@ -51,17 +52,23 @@ def heuristic_decide(diagnosis: dict, unrevealed_sites: list[str], model_family:
     elif "class_imbalance" in tags and model_family in ("random_forest", "logistic_regression", "svm"):
         action = {"kind": "tune_hyperparams", "params": {"class_weight": "balanced"}, "reason": "lopsided recall"}
     if action is None:
-        nxt = [f for f in FAMILY_ORDER if f != model_family and f not in tried_families]
+        order = FAMILY_ORDER + [f for f in extensions.EXTRA_MODELS if f not in FAMILY_ORDER]
+        nxt = [f for f in order if f != model_family and f not in tried_families]
+        extra_ops = [o for o in extensions.EXTRA_FEATURE_OPS if o not in feature_ops]
         if nxt:
             action = {"kind": "switch_model", "family": nxt[0], "reason": "try the next strongest family"}
         elif unrevealed_sites:
             action = {"kind": "acquire_data", "site": unrevealed_sites[0], "reason": "families exhausted; more data"}
         elif "onehot" not in feature_ops:
             action = {"kind": "transform_features", "op": "onehot", "reason": "encode categorical codes"}
+        elif extra_ops:
+            action = {"kind": "transform_features", "op": extra_ops[0], "reason": "try the ARIA-added feature op"}
         else:
             action = {"kind": "request_code_fix",
-                      "description": "All typed actions exhausted without beating target; "
-                                     "pipeline itself may need a new feature or model family.",
+                      "description": "All typed actions exhausted without beating target "
+                                     f"(families tried: {tried_families + [model_family]}, ops: {feature_ops}). "
+                                     "Expand the action space: register a NEW model family or feature op in "
+                                     "src/agentforge/extensions.py (register_model / register_feature_op).",
                       "failing_trace_ids": diagnosis.get("cited_trace_ids", [])}
     env = ActionEnvelope.model_validate({"action": action})
     return {"provider": "heuristic", "action": env.model_dump()}
