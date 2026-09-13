@@ -2,10 +2,11 @@ import os
 import pytest
 
 # Tests never upload traces or call LLMs, whatever is in the developer's .env.
+# Empty strings (not pops): load_dotenv() never overrides an existing key, so a developer's
+# .env cannot leak real credentials into the test run.
 os.environ["WEAVE_DISABLED"] = "true"
-os.environ.pop("WANDB_API_KEY", None)
-os.environ.pop("TYPESAFE_API_KEY", None)
-os.environ.pop("TYPESAFE_BASE_URL", None)
+for _k in ("WANDB_API_KEY", "WANDB_ENTITY", "TYPESAFE_API_KEY", "TYPESAFE_BASE_URL", "TYPESAFE_MODEL"):
+    os.environ[_k] = ""
 
 
 @pytest.fixture

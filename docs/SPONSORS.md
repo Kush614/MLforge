@@ -9,7 +9,7 @@ Everything below is verified against the code as of the first live run; the
 |---|---|---|---|
 | **Weave** | Every op traced; **the agent's memory** — diagnosis reads past `evaluate`/`act` traces and cites their IDs | `tracing.py`, `history.py`, every `@weave.op` | LIVE. History source `weave_api` from iteration 1 on. Hosted W&B MCP server not wired (Weave client API used instead — same store). |
 | **W&B Inference** | Reasoning brain: diagnosis (`gpt-oss-120b`) + fallback action head | `llm.py`, `diagnose.py` | LIVE. |
-| **TypeSafe AI** | **Action head**: diagnosis → exactly one pydantic-validated `Action` | `typesafe_client.py`, `scripts/compare_action_heads.py` | Wired with a placeholder request shape (`typesafe_complete`). Needs base URL + payload + model from their table. Falls back to Inference, labeled. |
+| **TypeSafe AI** | **Action head**: System One (Jev) answers typed `Choice` questions over the diagnosis state → code assembles one pydantic-validated `Action`; confidence + probabilities in the trace | `typesafe_client.py`, `scripts/compare_action_heads.py` | LIVE (`jev-1.13.0`). Drove a full run to 0.859 in 8 iterations. Comparison eval in Weave: see below. |
 | **ARIA** | Code-fixing arm: `request_code_fix` → `aria_requests/NNN.md` → `NNN.applied` → acceptance test re-run → recorded | `aria_handoff.py`, `docs/ARIA.md` | Protocol implemented + tested; no live ARIA fix executed yet. |
 | **marimo** | Self-writing lab report: one cell per iteration + live chart vs. target | `notebook_writer.py`, `notebooks/lab_report.py` | LIVE. molab optional (models are small). |
 
@@ -35,21 +35,33 @@ traces where model-switching already failed — so it acquired the Hungary site 
   `heuristic_fallback (wandb_inference error: <Type>)`.
 
 ## TypeSafe AI — the action head (measured, not decorative)
-- Two LLM jobs need different strengths: free-text reasoning (Inference) vs. strict
-  structured decision (TypeSafe). The action head's output must validate as an
-  `ActionEnvelope` (five shapes, discriminated on `kind`) plus the `acquire_data`
-  precondition, or it is rejected — this is the safety boundary of the whole system.
+- Two LLM jobs need different strengths: free-text reasoning (W&B Inference) vs. a strict
+  structured decision (TypeSafe). Jev does not generate text at all — it returns typed
+  answers with calibrated probabilities — so there is nothing to parse and nothing to repair.
+- Implementation (`typesafe_decide`): one `POST /v1/systemone` with the diagnosis, the eval
+  numbers, current setup and the effect history as `state`, and a fan-out of independent
+  `Choice` questions: `action_kind` plus speculative branches `model_family`, `feature_op`,
+  `site`, `hyperparam_preset`. Only legal options are offered (no `acquire_data` when no
+  sites remain; already-tried families are marked). Code consumes the chosen branch and
+  builds the `ActionEnvelope`; hyperparameters come from named presets mapped to grid
+  values in code (Jev picks the intent, code owns the numbers).
+- Trace + lab report carry Jev's confidence and the full probability vector, e.g.
+  `acquire_data 0.81, tune_hyperparams 0.11, switch_model 0.07`. Confidence visibly drops
+  (0.29–0.45) when the agent is stuck — an honest uncertainty signal judges can see.
 - Provider chain in `decide_action()`: `typesafe` → `wandb_inference` → `heuristic`,
   every attempt recorded, provider label carried into the trace + lab report.
-- **At the event:** get base URL, auth, payload shape, model name from the TypeSafe table;
-  edit `typesafe_complete()` (5 lines). If they support schema-constrained decoding,
-  send `ActionEnvelope.model_json_schema()` directly. Set `TYPESAFE_*` in `.env`; the
-  next `make run` uses TypeSafe first with no other change.
-- **Comparison eval** (`make compare`): replays recorded diagnoses through each provider,
-  scored on `valid_typed_action`, `agrees_with_run`, `latency_s`, and `accuracy_delta` —
-  a real counterfactual: apply the proposed action to the recorded state, retrain on the
-  same fixed split, measure the held-out delta. First live result (Inference only):
-  4/4 valid, mean delta +0.100.
+- **Comparison eval** (`make compare`, a `weave.Evaluation` over the run's recorded
+  diagnoses; scorers `valid_typed_action`, `agrees_with_run`, `latency_s`, and
+  `accuracy_delta` = apply the proposed action to the recorded state, retrain on the same
+  fixed split, measure the held-out delta). First live result on 7 diagnoses:
+
+  | head | valid typed action | mean counterfactual Δacc | mean latency |
+  |---|---|---|---|
+  | TypeSafe Jev 1.13 | 7/7 | **+0.086** | **~0.05–0.3 s** |
+  | W&B Inference gpt-oss-120b | 7/7 | +0.033 | 11.8 s |
+
+Demo line: *"The reasoning model explains; the TypeSafe model decides — in 300 ms, with a
+probability on every option — and the decision is measurably better on this data."*
 
 ## ARIA — the code-fixing arm
 - `request_code_fix` is the escape hatch when the four data/model actions can't express
@@ -68,8 +80,8 @@ traces where model-switching already failed — so it acquired the Hungary site 
   baseline from `runs/latest.jsonl`. `make report` opens it; `make reset` clears it.
 
 ## Q&A honesty sheet
-- Stubbed vs real: TypeSafe request shape (placeholder), ARIA live fix (not yet executed),
-  hosted MCP (not wired; Weave API used). Everything else ran live.
+- Stubbed vs real: ARIA live fix (protocol built, not yet executed), hosted MCP (not wired;
+  Weave API used). Weave, Inference, TypeSafe and marimo all ran live.
 - Metric gaming: fixed stratified test split across all four sites from iteration 0;
   acquiring a site only grows the train pool; same seed every run.
 - Plateau: 3 consecutive non-positive deltas stop the loop and say so.

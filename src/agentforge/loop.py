@@ -83,12 +83,18 @@ def run_iteration(state: LoopState, cfg: dict, dry_run: bool = False,
     d = diagnose(ev, hist, offline=dry_run)
     console.print(f"  [cyan]diagnosis[/cyan] ({d.get('provider')}, history={d.get('history_source')}): "
                   f"tags={d.get('evidence_tags')}\n  [dim]{d.get('reasoning', '')[:300]}[/dim]")
-    decision = decide_action(d, list(state.unrevealed_sites), state.model_family,
+    d_for_head = {**d, "evaluation": {k: ev[k] for k in ("accuracy", "balanced_accuracy", "train_accuracy",
+                                                    "train_test_gap", "n_train", "per_class", "learning_curve", "class_balance")}}
+    decision = decide_action(d_for_head, list(state.unrevealed_sites), state.model_family,
                              list(state.feature_ops), list(state.tried_families),
                              history_summary=hist["summary"], offline=dry_run)
     desc = act(decision["action"], state)
     state.record_action(desc, acc, current_call_id())
-    console.print(f"  [blue]action[/blue] ({decision['provider']}): {desc}")
+    ts = decision.get("typesafe")
+    console.print(f"  [blue]action[/blue] ({decision['provider']}): {desc}"
+                  + (f"\n  [dim]jev confidence={ts['confidence']:.2f} "
+                     f"probabilities={ {k: round(v, 2) for k, v in ts['probabilities'].items()} }[/dim]" if ts else ""))
+    common_extra["typesafe"] = ts
 
     append_iteration(state.iteration, ev, d, desc, decision["provider"], notebook, common_extra)
     log_metrics(run_name, {**row, "action": desc, "provider": decision["provider"],

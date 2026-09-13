@@ -86,3 +86,58 @@ def test_diagnose_llm_failure_falls_back_labeled(monkeypatch):
     monkeypatch.setattr(llm, "available", lambda: True)
     d = dx.diagnose(EV, {"source": "local", "summary": ""})
     assert "heuristic_fallback" in d["provider"] and "ConnectionError" in d["provider"]
+
+
+# ---------------------------------------------------------------- TypeSafe head (mocked transport)
+def _fake_system_one(kind, **branches):
+    def fake(state, questions, model=None):
+        assert "action_kind" in questions and kind in questions["action_kind"].criteria
+        answers = {"action_kind": {"choice": kind, "confidence": 0.8, "probabilities": {kind: 0.8}}}
+        for q, choice in branches.items():
+            if q in questions:
+                answers[q] = {"choice": choice, "confidence": 0.7, "probabilities": {choice: 0.7}}
+        return {"model": "jev-test", "usage": {"input_tokens": 1, "output_tokens": 1}, "answers": answers}
+    return fake
+
+
+def test_typesafe_questions_only_offer_legal_options():
+    from agentforge.typesafe_client import build_questions
+    q = build_questions([], "knn", ["standardize"], ["random_forest"])
+    assert "acquire_data" not in q["action_kind"].criteria and "site" not in q
+    assert "standardize" not in q["feature_op"].criteria
+    assert "ALREADY TRIED" in q["model_family"].criteria["random_forest"]
+    assert "knn" not in q["model_family"].criteria
+    q = build_questions(["hungary"], "random_forest", [], [])
+    assert set(q["site"].criteria) == {"hungary"} and "regularize" in q["hyperparam_preset"].criteria
+
+
+@pytest.mark.parametrize("kind,branches,expect", [
+    ("acquire_data", {"site": "hungary"}, {"kind": "acquire_data", "site": "hungary"}),
+    ("switch_model", {"model_family": "svm"}, {"kind": "switch_model", "family": "svm"}),
+    ("transform_features", {"feature_op": "onehot"}, {"kind": "transform_features", "op": "onehot"}),
+    ("tune_hyperparams", {"hyperparam_preset": "regularize"}, {"kind": "tune_hyperparams", "params": {"max_depth": 4, "min_samples_leaf": 5}}),
+    ("request_code_fix", {}, {"kind": "request_code_fix"}),
+])
+def test_typesafe_decide_builds_validated_action(monkeypatch, kind, branches, expect):
+    monkeypatch.setattr(typesafe_client, "typesafe_system_one", _fake_system_one(kind, **branches))
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test")
+    out = typesafe_client.decide_action({"reasoning": "r", "evidence_tags": []}, ["hungary"], "random_forest")
+    assert out["provider"] == "typesafe (jev-test)"
+    a = out["action"]["action"]
+    for k, v in expect.items():
+        assert a[k] == v
+    assert out["typesafe"]["confidence"] == 0.8
+    ActionEnvelope.model_validate(out["action"])
+
+
+def test_typesafe_failure_falls_back_to_inference_labeled(monkeypatch):
+    def boom(*a, **k):
+        raise RuntimeError("503")
+    monkeypatch.setattr(typesafe_client, "typesafe_system_one", boom)
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test")
+    monkeypatch.setattr(llm, "available", lambda: True)
+    monkeypatch.setattr(llm, "complete", lambda *a, **k: json.dumps(
+        {"action": {"kind": "transform_features", "op": "standardize", "reason": ""}}))
+    out = typesafe_client.decide_action({"evidence_tags": []}, [], "knn")
+    assert out["provider"] == "wandb_inference_fallback (typesafe failed)"
+    assert out["attempts"][0]["provider"] == "typesafe" and "RuntimeError" in out["attempts"][0]["error"]

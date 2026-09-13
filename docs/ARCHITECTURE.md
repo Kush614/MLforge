@@ -21,7 +21,8 @@
 - actions.py — pydantic Action union (see SPEC section 5).
 - act.py — validated executor; measures effect size; refuses unknown actions.
 - llm.py — OpenAI-compatible client pointed at W&B Inference.
-- typesafe_client.py — structured-decision head: TypeSafe -> W&B Inference -> heuristic,
+- typesafe_client.py — structured-decision head: TypeSafe System One (fan-out of Choice
+  questions, code assembles the action) -> W&B Inference (JSON + repair) -> heuristic,
   each attempt recorded; pydantic validation + precondition check before returning.
 - aria_handoff.py — writes aria_requests/NNN.md; check_for_patches() detects NNN.applied,
   re-runs the acceptance test, records applied_by (aria | manual-assisted) + result.

@@ -38,6 +38,11 @@ def append_iteration(iteration: int, eval_result: dict, diagnosis: dict, action_
         effect_md = (f"\n**Effect of previous action** `{_md_escape(e['action_desc'])}`: "
                      f"{e['accuracy_before']:.3f} → {e['accuracy_after']:.3f} "
                      f"(Δ {e['accuracy_after'] - e['accuracy_before']:+.3f})\n")
+    ts_md = ""
+    if extra.get("typesafe"):
+        t = extra["typesafe"]
+        probs = ", ".join(f"{k} {v:.2f}" for k, v in sorted(t["probabilities"].items(), key=lambda kv: -kv[1]))
+        ts_md = f"\n**Action-head probabilities** (TypeSafe Jev, confidence {t['confidence']:.2f}): {probs}\n"
     aria_md = ""
     if extra.get("aria"):
         aria_md = "\n**ARIA fixes detected this iteration:** " + "; ".join(
@@ -56,7 +61,7 @@ def append_iteration(iteration: int, eval_result: dict, diagnosis: dict, action_
 **Evidence tags:** {tags}{cited_md}
 
 **Action taken** (decided by *{_md_escape(provider)}*): `{_md_escape(action_desc)}`
-{aria_md}
+{ts_md}{aria_md}
 ---"""
     cell = f'''
 

@@ -27,7 +27,7 @@ TRAIN → EVALUATE → DIAGNOSE → ACT → (repeat)
 | **W&B Inference** | LLM backend for the diagnosis reasoning step | `src/agentforge/llm.py` |
 | **ARIA** | When diagnosis says the *code* is wrong, the loop emits a structured fix request handed to ARIA in a Models Workspace | `src/agentforge/aria_handoff.py` |
 | **marimo / molab** | The agent appends every iteration (diagnosis, action, before/after metrics) to a marimo notebook = live self-writing lab report; molab GPUs for training | `notebooks/lab_report.py`, `src/agentforge/notebook_writer.py` |
-| **TypeSafe AI** | Structured action head: converts free-text diagnosis into a typed action decision; compared against W&B Inference in a Weave eval | `src/agentforge/typesafe_client.py` |
+| **TypeSafe AI** | Structured action head: System One (Jev) answers typed `Choice` questions over the diagnosis → one validated action with calibrated probabilities; compared against W&B Inference in a Weave eval (`make compare`) | `src/agentforge/typesafe_client.py`, `scripts/compare_action_heads.py` |
 
 **Track selection:** Best Use of Weave (deepest integration). Also eligible: Best Loop Design.
 
