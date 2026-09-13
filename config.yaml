@@ -1,0 +1,19 @@
+wandb_project: agentforge-loop
+target_accuracy: 0.85          # benchmark to beat — set from your chosen published baseline
+max_iterations: 12
+dataset:
+  name: uci_heart_disease
+  initial_site: switzerland    # start weak on purpose: smallest/noisiest site
+  sites: [switzerland, hungary, va, cleveland]
+  test_size: 0.2
+  random_seed: 42
+models:                        # the shapes the agent may choose between
+  - knn
+  - logistic_regression
+  - random_forest
+  - svm
+  - gradient_boosting
+llm:
+  diagnosis_model: openai/gpt-oss-120b   # pick any model available on W&B Inference
+  temperature: 0.2
+notebook_path: notebooks/lab_report.py

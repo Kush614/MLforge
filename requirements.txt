@@ -1,0 +1,13 @@
+weave>=0.51
+wandb>=0.17
+openai>=1.40          # W&B Inference is OpenAI-compatible
+scikit-learn>=1.5
+pandas>=2.2
+numpy>=1.26
+pydantic>=2.7
+pyyaml>=6.0
+python-dotenv>=1.0
+marimo>=0.9
+requests>=2.32
+rich>=13.7
+pytest>=8.2
