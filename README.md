@@ -39,6 +39,7 @@ make data                  # fetch UCI heart disease, 4 sites -> data/
 make dry-run               # full loop OFFLINE: heuristic brain, no upload — must always pass
 cp .env.example .env       # WANDB_API_KEY (+ WANDB_ENTITY if your account has no default entity)
 make run                   # the real loop: W&B Inference diagnoses, Weave traces, notebook writes itself
+make serve                 # backend + live console at http://127.0.0.1:8008 (start/stop runs, SSE stream, replay)
 make report                # marimo edit notebooks/lab_report.py  (chart + one section per iteration)
 make compare               # P4: TypeSafe vs Inference action-head eval in Weave
 make test                  # pytest + dry-run, required before every commit
@@ -53,6 +54,14 @@ make test                  # pytest + dry-run, required before every commit
   and model choice — the dry run reaches ~0.87 in 5 iterations.
 - Every provider label (`wandb_inference`, `typesafe`, `heuristic_fallback (...)`) and
   history source (`weave_api` vs `local`) is recorded in the trace and the lab report.
+
+## Live console (frontend + backend)
+`make serve` starts a FastAPI backend (`src/agentforge/server.py`) that runs the loop in a
+worker thread and streams every phase, iteration, and log line over Server-Sent Events.
+The console at `/` (`demo/index.html`) starts/stops runs (optionally poisoned), shows the
+loop as a quiet 3D ring with the hospital sites, Weave memory stack and accuracy column,
+plus the diagnosis, Jev's probabilities, the confidence gate, the effect ledger, the live
+log and the cockpit controls. Past runs replay from `runs/*.jsonl` via `/api/runs`.
 
 ## What makes it more than "LLM picks an action"
 - **Confidence-gated decisions**: Jev's calibrated confidence below 0.40 → second opinion from

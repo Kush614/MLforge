@@ -22,6 +22,7 @@ from .typesafe_client import decide_action, second_opinion
 from .act import act
 from .aria_handoff import check_for_patches
 from .notebook_writer import append_iteration, reset_notebook, notebook_path
+from . import events
 
 console = Console()
 
@@ -68,7 +69,9 @@ def run_iteration(state: LoopState, cfg: dict, dry_run: bool = False,
             state.unrevealed_sites.remove(s)
         console.print(f"  [magenta]cockpit: sites frozen by human via lab report: {frozen}[/magenta]")
     X_tr, X_te, y_tr, y_te, fp = split_data(state, cfg, allow_synthetic=synthetic)
+    events.emit("phase", phase="train", **state.snapshot())
     model = train(state, X_tr, y_tr)
+    events.emit("phase", iteration=state.iteration, phase="evaluate")
     ev = evaluate(model, X_tr, y_tr, X_te, y_te)
     acc = ev["accuracy"]
     effect = state.settle_effect(acc)             # attribute delta to the previous action
@@ -102,15 +105,19 @@ def run_iteration(state: LoopState, cfg: dict, dry_run: bool = False,
         d = {"reasoning": f"Accuracy {acc:.3f} >= target {target}. No further action.",
              "evidence_tags": [], "history_source": "n/a", "provider": "n/a"}
         append_iteration(state.iteration, ev, d, "none (target beaten)", "n/a", notebook, common_extra)
-        log_metrics(run_name, {**row, "action": None, "stop": "target"})
+        final = {**row, "action": None, "stop": "target"}
+        log_metrics(run_name, final)
+        events.emit("iteration", row=final, run_name=run_name)
         return {"accuracy": acc, "stop": "target", "seconds": time.time() - t0}
 
+    events.emit("phase", iteration=state.iteration, phase="diagnose", accuracy=acc)
     hist = build_history(state, use_weave=not dry_run)
     if hist.get("note"):
         console.print(f"  [dim]history: {hist['source']} — {hist['note']}[/dim]")
     d = diagnose(ev, hist, offline=dry_run)
     console.print(f"  [cyan]diagnosis[/cyan] ({d.get('provider')}, history={d.get('history_source')}): "
                   f"tags={d.get('evidence_tags')}\n  [dim]{d.get('reasoning', '')[:300]}[/dim]")
+    events.emit("phase", iteration=state.iteration, phase="act", diagnosis=d)
     d_for_head = {**d, "evaluation": {k: ev[k] for k in ("accuracy", "balanced_accuracy", "train_accuracy",
                                                     "train_test_gap", "n_train", "per_class", "learning_curve", "class_balance")}}
     decision = decide_action(d_for_head, list(state.unrevealed_sites), state.model_family,
@@ -148,7 +155,7 @@ def run_iteration(state: LoopState, cfg: dict, dry_run: bool = False,
     common_extra.update({"typesafe": ts, "escalation": escalation, "accounting": acct})
 
     append_iteration(state.iteration, ev, d, desc, decision["provider"], notebook, common_extra)
-    log_metrics(run_name, {**row, "action": desc, "provider": decision["provider"],
+    full_row = {**row, "action": desc, "provider": decision["provider"],
                            "evidence_tags": d.get("evidence_tags", []),
                            "history_source": d.get("history_source"), "stop": None,
                            "accounting": acct, "jev_confidence": ts["confidence"] if ts else None,
@@ -163,7 +170,10 @@ def run_iteration(state: LoopState, cfg: dict, dry_run: bool = False,
                                "hyperparams": dict(state.hyperparams) if decision["action"]["action"]["kind"] != "tune_hyperparams" else None,
                                "tried_families": list(state.tried_families),
                                "tried_hyperparams": list(state.tried_hyperparams.get(common_extra["model_family"], [])),
-                               "history_summary": hist["summary"]}})
+                               "history_summary": hist["summary"]}}
+    log_metrics(run_name, full_row)
+    events.emit("iteration", row=full_row, run_name=run_name,
+                diagnosis=d, decision=decision, escalation=escalation)
     stop = "plateau" if state.plateaued(3) else None
     return {"accuracy": acc, "stop": stop, "seconds": time.time() - t0, "action": desc}
 
@@ -222,7 +232,11 @@ def main(argv: list[str] | None = None) -> float:
     console.print(f"target={cfg['target_accuracy']} max_iterations={max_iters} "
                   f"start site={state.sites} model={state.model_family} notebook={notebook or cfg['notebook_path']}")
 
-    acc, results = None, []
+    events.STOP.clear()
+    events.emit("run_start", run_name=run_name, target=cfg["target_accuracy"], max_iterations=max_iters,
+                poison=poison_cfg(cfg), dry_run=args.dry_run, tracing=ts["mode"], sites=cfg["dataset"]["sites"],
+                initial_site=cfg["dataset"]["initial_site"])
+    acc, results, stop_reason = None, [], "max_iterations"
     for i in range(max_iters):
         state.iteration = i
         r = run_iteration(state, cfg, dry_run=args.dry_run, notebook=notebook,
@@ -230,9 +244,15 @@ def main(argv: list[str] | None = None) -> float:
         acc = r["accuracy"]
         results.append(r)
         if r["stop"] == "target":
+            stop_reason = "target"
             break
         if r["stop"] == "plateau":
             console.print("[yellow]Plateau: 3 actions with no improvement. Stopping honestly.[/yellow]")
+            stop_reason = "plateau"
+            break
+        if events.STOP.is_set():
+            console.print("[yellow]Stopped by operator.[/yellow]")
+            stop_reason = "operator"
             break
 
     table = Table(title="effect ledger (same seeded split every iteration)")
@@ -244,6 +264,9 @@ def main(argv: list[str] | None = None) -> float:
     console.print(table)
     console.print(f"[bold]Final accuracy: {acc:.3f}[/bold] (target {cfg['target_accuracy']}) "
                   f"after {len(results)} iteration(s); metrics -> runs/{run_name}.jsonl")
+    events.emit("run_end", run_name=run_name, accuracy=acc, iterations=len(results), stop=stop_reason,
+                ledger=[{"iteration": e.iteration, "action": e.action_desc, "before": e.accuracy_before,
+                         "after": e.accuracy_after} for e in state.history])
     return acc
 
 

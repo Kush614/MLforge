@@ -20,6 +20,9 @@ run-poison:       ## adversarial reveal: 40% label noise on VA's train rows (doc
 test:             ## what CLAUDE.md requires before every commit
 	$(PY) -m pytest tests/ -x -q && $(PY) -m agentforge.loop --dry-run --iterations 2
 
+serve:            ## backend + live frontend at http://127.0.0.1:8008
+	$(PY) -m agentforge.server
+
 report:           ## open the self-writing lab report
 	.venv/bin/marimo edit notebooks/lab_report.py
 

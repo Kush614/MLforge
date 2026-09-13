@@ -13,3 +13,5 @@ rich>=13.7
 pytest>=8.2
 typesafe-sdk>=0.5   # TypeSafe System One (Jev) action head
 matplotlib>=3.8
+fastapi>=0.110
+uvicorn>=0.29

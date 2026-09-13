@@ -33,14 +33,17 @@ def init_tracing(offline: bool = False) -> dict:
     offline=True (or no WANDB_API_KEY) -> weave runs disabled: ops execute, no upload.
     Returns the tracing state dict so callers can log the mode honestly.
     """
+    want_offline = offline or not os.environ.get("WANDB_API_KEY")
     if _state["mode"] != "uninitialized":
-        return _state
+        if (_state["mode"] == "offline") == want_offline:
+            return _state                      # same mode as before: nothing to do
+        _state["mode"] = "uninitialized"       # mode change (server runs dry then live): re-init
     project = _cfg["wandb_project"]
     ent = os.environ.get("WANDB_ENTITY", "").strip()
     if ent and "/" not in project:
         project = f"{ent}/{project}"
     _state["project"] = project
-    if offline or not os.environ.get("WANDB_API_KEY"):
+    if want_offline:
         # weave honours WEAVE_DISABLED; set before init so nothing tries to log in.
         os.environ["WEAVE_DISABLED"] = "true"
         try:
@@ -50,6 +53,7 @@ def init_tracing(offline: bool = False) -> dict:
         _state["mode"] = "offline"
         _state["reason"] = "dry-run flag" if offline else "WANDB_API_KEY not set"
         return _state
+    os.environ.pop("WEAVE_DISABLED", None)
     try:
         _state["client"] = weave.init(project)
         _state["mode"] = "online"

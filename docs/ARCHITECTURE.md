@@ -30,6 +30,9 @@
 - tracing.py — weave.init (online / offline, mode reported) + config(); current_call_id().
 - state.py — LoopState + effect attribution (record_action / settle_effect) + runs/*.jsonl
   metrics log read by the notebook chart.
+- events.py — in-process event bus (run_start / phase / iteration / log / run_end) + STOP flag.
+- server.py — FastAPI: start/stop runs, SSE stream of events, past runs, cockpit controls;
+  serves demo/index.html (live console). demo/loop3d.html is the standalone 3D replay.
 - scripts/compare_action_heads.py — P4 weave.Evaluation: TypeSafe vs Inference on
   recorded diagnoses.
 
