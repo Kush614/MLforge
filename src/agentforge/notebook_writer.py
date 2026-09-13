@@ -8,7 +8,10 @@ import weave
 from pathlib import Path
 from .tracing import config, ROOT
 
-_CELL_NAME_RE = re.compile(r"def _iter_(\d+)\(")
+def _cell_pattern(iteration: str) -> re.Pattern:
+    """Matches one agent-written cell WITHOUT consuming the newline after its `return`,
+    so adjacent cells still match after a neighbour is removed/replaced."""
+    return re.compile(rf"\n+@app\.cell\ndef _iter_{iteration}\(mo\):.*?\n    return(?=\n)", re.S)
 
 
 def notebook_path(override: str | None = None) -> Path:
@@ -64,17 +67,16 @@ def _iter_{iteration}(mo):
 {body}
         """
     )
-    return
-'''
+    return'''
     text = nb.read_text() if nb.exists() else _fresh_notebook()
     # idempotent per iteration: replace an existing cell for this iteration if re-run
-    pat = re.compile(rf"\n\n@app\.cell\ndef _iter_{iteration}\(mo\):.*?\n    return\n", re.S)
+    pat = _cell_pattern(str(iteration))
     if pat.search(text):
-        text = pat.sub(cell, text, count=1)
+        text = pat.sub(lambda _m: cell, text, count=1)
     else:
         marker = 'if __name__ == "__main__":'
         idx = text.rfind(marker)
-        text = text[:idx].rstrip("\n") + cell + "\n\n" + text[idx:] if idx != -1 else text + cell
+        text = text[:idx].rstrip("\n") + cell + "\n\n\n" + text[idx:] if idx != -1 else text + cell + "\n"
     nb.parent.mkdir(parents=True, exist_ok=True)
     nb.write_text(text)
     return str(nb)
@@ -88,6 +90,6 @@ def reset_notebook(notebook: str | None = None) -> Path:
     """Strip all agent-written iteration cells (start of a fresh demo run)."""
     nb = notebook_path(notebook)
     text = nb.read_text()
-    text = re.sub(r"\n\n@app\.cell\ndef _iter_\d+\(mo\):.*?\n    return\n", "", text, flags=re.S)
+    text = _cell_pattern(r"\d+").sub("", text)
     nb.write_text(text)
     return nb

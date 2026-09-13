@@ -36,8 +36,9 @@ def init_tracing(offline: bool = False) -> dict:
     if _state["mode"] != "uninitialized":
         return _state
     project = _cfg["wandb_project"]
-    if os.environ.get("WANDB_ENTITY") and "/" not in project:
-        project = f"{os.environ['WANDB_ENTITY']}/{project}"
+    ent = os.environ.get("WANDB_ENTITY", "").strip()
+    if ent and "/" not in project:
+        project = f"{ent}/{project}"
     _state["project"] = project
     if offline or not os.environ.get("WANDB_API_KEY"):
         # weave honours WEAVE_DISABLED; set before init so nothing tries to log in.

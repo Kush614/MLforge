@@ -32,7 +32,7 @@ def _client() -> OpenAI:
 
 def _project_header() -> str:
     proj = config()["wandb_project"]
-    ent = os.environ.get("WANDB_ENTITY")
+    ent = os.environ.get("WANDB_ENTITY", "").strip()
     return f"{ent}/{proj}" if ent and "/" not in proj else proj
 
 
