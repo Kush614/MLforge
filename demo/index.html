@@ -7,19 +7,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap">
 <style>
-  /* Codex-style: near-black, hairline borders, monospace where the machine speaks, one green. */
   :root {
-    --bg: #0a0a0a; --panel: #111111; --panel-2: #171717; --raised: #1c1c1c; --border: #262626; --border-2: #333333;
+    --bg: #0a0a0a; --panel: #111111; --panel-2: #171717; --raised: #1f1f1f; --border: #262626; --border-2: #343434;
     --ink: #ececec; --ink-2: #a3a3a3; --ink-3: #6b6b6b;
-    --green: #10a37f; --green-soft: rgba(16,163,127,.14); --red: #ef6461; --red-soft: rgba(239,100,97,.14); --amber: #d7a33a; --blue: #7aa2f7;
+    --green: #10a37f; --green-soft: rgba(16,163,127,.16); --red: #ef6461; --amber: #d7a33a; --blue: #7aa2f7; --violet: #b48ef2;
     --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
     --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 13px; line-height: 1.5; overflow: hidden; }
-  .app { display: grid; grid-template-columns: 236px minmax(0, 1fr) minmax(360px, 42%); height: 100vh; }
-  @media (max-width: 1100px) { .app { grid-template-columns: 200px minmax(0, 1fr); } .code { display: none; } }
+  .app { display: grid; grid-template-columns: 228px minmax(0, 1fr) minmax(340px, 34%); height: 100vh; }
+  @media (max-width: 1150px) { .app { grid-template-columns: 200px minmax(0, 1fr); } .right { display: none; } }
   @media (max-width: 760px) { body { overflow: auto; } .app { grid-template-columns: 1fr; height: auto; } .side { border-right: 0; border-bottom: 1px solid var(--border); } }
 
   /* ---------- sidebar ---------- */
@@ -27,15 +26,16 @@
   .side .top { padding: 14px 14px 10px; border-bottom: 1px solid var(--border); }
   .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; }
   .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
-  .brand .dot.live { background: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+  .brand .dot.live { background: var(--green); box-shadow: 0 0 0 3px var(--green-soft); animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(16,163,127,.05); } }
   .brand small { font-weight: 400; color: var(--ink-3); font-family: var(--mono); font-size: 11px; margin-left: auto; }
+  .st { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); overflow-wrap: anywhere; margin-top: 6px; }
   .side h3 { margin: 0; padding: 12px 14px 6px; font-size: 11px; font-weight: 500; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
   .runs { overflow: auto; flex: 1; min-height: 80px; }
   .run { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 8px 14px; cursor: pointer; border-left: 2px solid transparent; }
   .run:hover { background: var(--panel-2); } .run.sel { background: var(--panel-2); border-left-color: var(--green); }
   .run .n { font-family: var(--mono); font-size: 11.5px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .run .a { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-  .run .a.hit { color: var(--green); }
+  .run .a { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); } .run .a.hit { color: var(--green); }
   .run .m { grid-column: 1 / -1; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); }
   .ledger { padding: 0 14px 12px; font-family: var(--mono); font-size: 11px; }
   .ledger div { display: grid; grid-template-columns: 18px 1fr 50px; gap: 6px; padding: 3px 0; color: var(--ink-2); border-bottom: 1px solid var(--border); }
@@ -44,128 +44,217 @@
   .ledger .empty { color: var(--ink-3); border: 0; display: block; }
   .cockpit { border-top: 1px solid var(--border); padding: 10px 14px 14px; display: grid; gap: 8px; }
   .cockpit label { display: grid; gap: 4px; font-size: 11.5px; color: var(--ink-2); }
+  .cockpit input[type=number] { font: inherit; font-family: var(--mono); background: var(--bg); color: var(--ink); border: 1px solid var(--border-2); border-radius: 6px; padding: 4px 8px; }
   .cockpit .chk { display: flex; gap: 8px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; }
   .cockpit .chk label { display: flex; flex-direction: row; align-items: center; gap: 4px; }
-  .cockpit .st { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); overflow-wrap: anywhere; }
 
-  /* ---------- center: transcript ---------- */
+  /* ---------- center ---------- */
   .main { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
   .bar { display: flex; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
   .bar .r { margin-left: auto; display: flex; gap: 8px; align-items: center; }
-  .phases { display: flex; gap: 2px; }
-  .phases span { padding: 3px 8px; border-radius: 4px; color: var(--ink-3); }
-  .phases span.done { color: var(--ink-2); } .phases span.on { color: var(--green); background: var(--green-soft); }
-  .transcript { flex: 1; overflow: auto; padding: 18px 18px 8px; scroll-behavior: smooth; }
-  .chart-wrap { border: 1px solid var(--border); border-radius: 8px; background: var(--panel); padding: 10px 12px 6px; margin-bottom: 18px; }
+  .center { flex: 1; overflow: auto; padding: 16px 18px 8px; display: grid; gap: 14px; align-content: start; }
+  .diagram { border: 1px solid var(--border); border-radius: 10px; background: var(--panel); padding: 8px 10px 4px; }
+  svg.flow { width: 100%; height: auto; display: block; font-family: var(--sans); }
+  .flow text { fill: var(--ink-2); font-size: 12px; }
+  .flow .title { fill: var(--ink); font-weight: 600; font-size: 13px; }
+  .flow .desc { fill: var(--ink-3); font-size: 10.5px; }
+  .flow .mono { font-family: var(--mono); font-size: 10.5px; }
+  .flow .node rect.box { fill: var(--panel-2); stroke: var(--border-2); stroke-width: 1; transition: stroke .3s, fill .3s; }
+  .flow .node.on rect.box { stroke: var(--green); stroke-width: 1.5; fill: #14201c; }
+  .flow .node.done rect.box { stroke: var(--border-2); }
+  .flow .node .ring { fill: none; stroke: var(--green); stroke-width: 1.5; opacity: 0; }
+  .flow .node.on .ring { animation: ring 1.4s ease-out infinite; }
+  @keyframes ring { 0% { opacity: .7; transform: scale(1); } 100% { opacity: 0; transform: scale(1.06); } }
+  .flow .node .ring { transform-box: fill-box; transform-origin: center; }
+  .flow .edge { fill: none; stroke: var(--border-2); stroke-width: 1.5; }
+  .flow .edge.on { stroke: var(--green); stroke-dasharray: 6 6; animation: dash 1s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -24; } }
+  .flow .arrow { fill: var(--border-2); } .flow .edge.on + .arrow, .flow .arrow.on { fill: var(--green); }
+  .flow .token { fill: var(--green); filter: drop-shadow(0 0 6px rgba(16,163,127,.8)); }
+  .flow .hosp rect { fill: var(--panel-2); stroke: var(--border-2); transition: all .4s; }
+  .flow .hosp.lit rect { fill: #1b2340; stroke: var(--blue); }
+  .flow .hosp.bad rect { fill: #3a1f1e; stroke: var(--red); animation: flick 1.2s ease-in-out infinite; }
+  @keyframes flick { 50% { opacity: .6; } }
+  .flow .hosp text { fill: var(--ink-3); font-size: 10.5px; } .flow .hosp.lit text { fill: var(--ink); }
+  .flow .hosp .win { fill: var(--border-2); } .flow .hosp.lit .win { fill: var(--blue); } .flow .hosp.bad .win { fill: var(--red); }
+  .flow .feed { fill: none; stroke: var(--blue); stroke-width: 1.5; stroke-dasharray: 4 5; opacity: 0; transition: opacity .3s; }
+  .flow .feed.on { opacity: 1; animation: dash .8s linear infinite; }
+  .flow .gauge-bg { fill: var(--raised); } .flow .gauge { fill: var(--green); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+  .flow .gauge-t { stroke: var(--amber); stroke-width: 2; }
+  .flow .plate { fill: var(--raised); stroke: var(--border-2); transition: all .4s; } .flow .plate.lit { fill: #1e2a26; stroke: var(--green); }
+  .flow .plate.read { stroke: var(--green); fill: var(--green-soft); }
+  .flow .think { fill: none; stroke: var(--green); stroke-width: 1.5; opacity: 0; }
+  .flow .think.on { opacity: 1; stroke-dasharray: 3 4; animation: dash .7s linear infinite; }
+  .flow .tag { fill: var(--raised); stroke: var(--border-2); } .flow .tagt { fill: var(--ink-2); font-size: 10px; font-family: var(--mono); }
+  .flow .opt { stroke: var(--border-2); stroke-width: 1.5; fill: none; transition: all .5s; } .flow .opt.pick { stroke: var(--green); stroke-width: 3; }
+  .flow .optt { fill: var(--ink-3); font-size: 10.5px; font-family: var(--mono); transition: fill .3s; } .flow .optt.pick { fill: var(--green); }
+  .flow .optp { fill: var(--ink-3); font-size: 10px; font-family: var(--mono); }
+  .flow .badge rect { fill: #2e2410; stroke: var(--amber); } .flow .badge text { fill: var(--amber); font-size: 10px; font-family: var(--mono); }
+  .flow .badge { opacity: 0; transition: opacity .3s; } .flow .badge.on { opacity: 1; }
+  .flow .back { fill: none; stroke: var(--border-2); stroke-width: 1.5; } .flow .back.on { stroke: var(--green); stroke-dasharray: 6 6; animation: dash .8s linear infinite; }
+  .flow .accnum { fill: var(--ink); font-family: var(--mono); font-size: 18px; font-weight: 600; }
+  .flow .accnum.hit { fill: var(--green); }
+  .flow .delta { font-family: var(--mono); font-size: 10.5px; } .flow .delta.up { fill: var(--green); } .flow .delta.down { fill: var(--red); }
+
+  .caption { border: 1px solid var(--border); border-radius: 10px; background: var(--panel); padding: 12px 16px; display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; min-height: 64px; }
+  .caption .step { font-family: var(--mono); font-size: 11px; color: var(--green); background: var(--green-soft); border-radius: 6px; padding: 3px 8px; white-space: nowrap; margin-top: 2px; }
+  .caption .txt { font-size: 14px; color: var(--ink); line-height: 1.45; }
+  .caption .txt small { display: block; color: var(--ink-3); font-size: 12px; margin-top: 3px; }
+  .caption.enter .txt { animation: fadeup .35s ease-out; }
+  @keyframes fadeup { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .chart-wrap { border: 1px solid var(--border); border-radius: 10px; background: var(--panel); padding: 10px 12px 6px; }
   .chart-wrap .h { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-bottom: 4px; }
-  svg.chart { width: 100%; height: 140px; display: block; overflow: visible; }
+  svg.chart { width: 100%; height: 130px; display: block; overflow: visible; }
   .chart text { font-family: var(--mono); font-size: 10px; fill: var(--ink-3); }
   .chart .grid line { stroke: var(--border); } .chart .acc { fill: none; stroke: var(--green); stroke-width: 1.6; }
   .chart .train { fill: none; stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 3; }
   .chart .target { stroke: var(--amber); stroke-dasharray: 4 4; } .chart .base { stroke: var(--ink-3); stroke-dasharray: 1 3; }
   .chart circle { fill: var(--bg); stroke: var(--green); stroke-width: 1.6; } .chart circle.hit { fill: var(--green); }
-  .iter { margin-bottom: 20px; }
-  .iter > .h { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-bottom: 8px; }
-  .iter > .h b { color: var(--ink); font-weight: 600; }
-  .iter > .h .pill { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--panel-2); color: var(--ink-2); border: 1px solid var(--border); font-variant-numeric: tabular-nums; }
-  .iter > .h .pill.up { color: var(--green); border-color: rgba(16,163,127,.4); } .iter > .h .pill.down { color: var(--red); border-color: rgba(239,100,97,.4); }
-  .call { display: grid; grid-template-columns: 18px 1fr; gap: 0 8px; padding: 7px 10px; border-left: 2px solid var(--border); margin-left: 6px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
-  .call.on { border-left-color: var(--green); background: linear-gradient(90deg, var(--green-soft), transparent 60%); }
-  .call.on .ic { color: var(--green); }
-  .call .ic { color: var(--ink-3); } .call .fn { color: var(--ink); }
-  .call .arg { color: var(--ink-3); } .call .kw { color: var(--blue); } .call .str { color: var(--amber); }
-  .call .ret { grid-column: 2; margin-top: 3px; color: var(--ink-2); overflow-wrap: anywhere; }
-  .call .ret .ok { color: var(--green); } .call .ret .bad { color: var(--red); }
-  .call .ret .cur { display: inline-block; width: 6px; height: 11px; background: var(--green); vertical-align: -1px; animation: blink 1s steps(2) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-  .call .say { grid-column: 2; margin-top: 6px; font-family: var(--sans); font-size: 13px; color: var(--ink); max-width: 70ch; border-left: 2px solid var(--border-2); padding-left: 10px; }
-  .tags { display: inline-flex; gap: 5px; margin-left: 6px; vertical-align: middle; }
-  .tag { font-size: 10.5px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border-2); color: var(--ink-2); }
-  .probs { grid-column: 2; margin-top: 6px; display: grid; gap: 3px; max-width: 420px; }
-  .prob { display: grid; grid-template-columns: 130px 1fr 34px; gap: 8px; align-items: center; font-size: 11px; color: var(--ink-3); }
-  .prob .t { height: 5px; background: var(--panel-2); border-radius: 2px; overflow: hidden; } .prob .t i { display: block; height: 100%; width: 0; background: var(--ink-3); transition: width .4s ease; }
-  .prob.top { color: var(--ink); } .prob.top .t i { background: var(--green); } .prob em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
-  .gate { grid-column: 2; margin-top: 6px; font-size: 11.5px; color: var(--amber); }
-  .gate q { color: var(--ink-2); font-family: var(--sans); }
-  .sys { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); padding: 4px 0 4px 16px; overflow-wrap: anywhere; }
-  .sys.hi { color: var(--ink-2); }
-  .sys.warn { color: var(--amber); }
-  .end { margin: 6px 0 14px 6px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); display: inline-block; }
-  .end.good { border-color: rgba(16,163,127,.5); color: var(--green); } .end.bad { border-color: rgba(239,100,97,.5); color: var(--red); }
-  .empty { color: var(--ink-3); padding: 40px 0; text-align: center; font-family: var(--mono); font-size: 12px; }
 
-  /* composer, like a prompt box */
   .composer { border-top: 1px solid var(--border); padding: 12px 18px 14px; background: var(--panel); }
-  .box { border: 1px solid var(--border-2); border-radius: 10px; background: var(--bg); padding: 10px 12px; display: grid; gap: 10px; }
+  .box { border: 1px solid var(--border-2); border-radius: 10px; background: var(--bg); padding: 10px 12px; display: grid; gap: 8px; }
   .box .line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
   .box .line .p { color: var(--green); }
   .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border: 1px solid var(--border-2); border-radius: 999px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); background: var(--panel-2); }
   .chip select, .chip input[type=number] { font: inherit; color: var(--ink); background: transparent; border: 0; padding: 0; outline: none; }
-  .chip input[type=number] { width: 34px; text-align: right; }
-  .chip input[type=checkbox] { margin: 0; accent-color: var(--green); }
+  .chip input[type=number] { width: 34px; text-align: right; } .chip input[type=checkbox] { margin: 0; accent-color: var(--green); }
   button { font: inherit; font-size: 12px; color: var(--ink); background: var(--panel-2); border: 1px solid var(--border-2); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
   button:hover { border-color: var(--ink-3); } button:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
-  button.go { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 600; margin-left: auto; }
-  button.go:disabled { opacity: .45; cursor: default; }
+  button.go { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 600; margin-left: auto; } button.go:disabled { opacity: .45; cursor: default; }
   button.stop { border-color: rgba(239,100,97,.5); color: var(--red); margin-left: auto; }
   button.mini { padding: 3px 8px; font-size: 11px; border-radius: 6px; }
+  .phases { display: flex; gap: 2px; } .phases span { padding: 3px 8px; border-radius: 4px; color: var(--ink-3); }
+  .phases span.done { color: var(--ink-2); } .phases span.on { color: var(--green); background: var(--green-soft); }
 
-  /* ---------- right: the code that is running ---------- */
-  .code { border-left: 1px solid var(--border); background: var(--panel); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-  .code .tabs { display: flex; gap: 2px; padding: 8px 10px; border-bottom: 1px solid var(--border); overflow-x: auto; }
-  .code .tabs button { padding: 4px 9px; font-family: var(--mono); font-size: 11px; border-radius: 6px; border-color: transparent; background: transparent; color: var(--ink-3); white-space: nowrap; }
-  .code .tabs button.sel { background: var(--panel-2); color: var(--ink); border-color: var(--border); }
-  .code .tabs button.run { color: var(--green); }
-  .code .tabs button.run::before { content: "● "; }
-  .code .file { font-family: var(--mono); font-size: 11px; color: var(--ink-3); padding: 6px 14px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; }
-  .code .file b { color: var(--ink-2); font-weight: 500; }
-  .code .file .st { margin-left: auto; color: var(--green); }
-  pre.src { margin: 0; flex: 1; overflow: auto; padding: 10px 0 24px; font-family: var(--mono); font-size: 11.5px; line-height: 1.55; color: var(--ink-2); tab-size: 4; }
-  pre.src .ln { display: grid; grid-template-columns: 44px 1fr; padding-right: 14px; }
-  pre.src .ln .n { color: var(--ink-3); text-align: right; padding-right: 12px; user-select: none; opacity: .7; }
-  pre.src .ln.hot { background: var(--green-soft); } pre.src .ln.hot .n { color: var(--green); opacity: 1; }
-  pre.src .ln.warm { background: rgba(16,163,127,.05); }
+  /* ---------- right: transcript / code ---------- */
+  .right { border-left: 1px solid var(--border); background: var(--panel); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .tabs { display: flex; gap: 2px; padding: 8px 10px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tabs button { padding: 4px 9px; font-family: var(--mono); font-size: 11px; border-radius: 6px; border-color: transparent; background: transparent; color: var(--ink-3); white-space: nowrap; }
+  .tabs button.sel { background: var(--panel-2); color: var(--ink); border-color: var(--border); } .tabs button.run { color: var(--green); } .tabs button.run::before { content: "● "; }
+  .pane { flex: 1; overflow: auto; min-height: 0; }
+  .transcript { padding: 12px 14px; scroll-behavior: smooth; }
+  .iter { margin-bottom: 16px; } .iter > .h { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-bottom: 6px; } .iter > .h b { color: var(--ink); }
+  .iter .pill { font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--border); color: var(--ink-2); } .iter .pill.up { color: var(--green); } .iter .pill.down { color: var(--red); }
+  .call { display: grid; grid-template-columns: 14px 1fr; gap: 0 6px; padding: 6px 8px; border-left: 2px solid var(--border); margin-left: 4px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
+  .call.on { border-left-color: var(--green); background: linear-gradient(90deg, var(--green-soft), transparent 60%); } .call.on .ic { color: var(--green); }
+  .call .ic { color: var(--ink-3); } .call .fn { color: var(--ink); } .call .arg { color: var(--ink-3); }
+  .call .ret { grid-column: 2; margin-top: 2px; overflow-wrap: anywhere; } .call .ret .ok { color: var(--green); } .call .ret .bad { color: var(--red); }
+  .call .ret .cur { display: inline-block; width: 6px; height: 11px; background: var(--green); vertical-align: -1px; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .call .say { grid-column: 2; margin-top: 5px; font-family: var(--sans); font-size: 12.5px; color: var(--ink); border-left: 2px solid var(--border-2); padding-left: 8px; }
+  .sys { font-family: var(--mono); font-size: 11px; color: var(--ink-3); padding: 3px 0 3px 12px; overflow-wrap: anywhere; } .sys.hi { color: var(--ink-2); } .sys.warn { color: var(--amber); }
+  .end { margin: 4px 0 10px 4px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); display: inline-block; }
+  .end.good { border-color: rgba(16,163,127,.5); color: var(--green); } .end.bad { border-color: rgba(239,100,97,.5); color: var(--red); }
+  .empty { color: var(--ink-3); padding: 30px 0; text-align: center; font-family: var(--mono); font-size: 12px; }
+  .file { font-family: var(--mono); font-size: 11px; color: var(--ink-3); padding: 6px 14px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; } .file b { color: var(--ink-2); font-weight: 500; } .file .stt { margin-left: auto; color: var(--green); }
+  pre.src { margin: 0; padding: 8px 0 20px; font-family: var(--mono); font-size: 11.5px; line-height: 1.55; color: var(--ink-2); }
+  pre.src .ln { display: grid; grid-template-columns: 44px 1fr; padding-right: 12px; } pre.src .ln .n { color: var(--ink-3); text-align: right; padding-right: 12px; opacity: .7; }
+  pre.src .ln.hot { background: var(--green-soft); } pre.src .ln.hot .n { color: var(--green); opacity: 1; } pre.src .ln.warm { background: rgba(16,163,127,.05); }
   .k { color: #c792ea; } .s { color: var(--amber); } .c { color: var(--ink-3); font-style: italic; } .d { color: var(--green); } .f { color: var(--blue); } .num { color: #f78c6c; }
-  .code .out { border-top: 1px solid var(--border); padding: 8px 14px 12px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); max-height: 34%; overflow: auto; }
-  .code .out .h { color: var(--ink-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
-  .code .out pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
+  .codetabs { display: flex; gap: 2px; padding: 6px 10px; border-bottom: 1px solid var(--border); overflow-x: auto; }
   .toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); background: var(--ink); color: var(--bg); font-family: var(--mono); font-size: 12px; padding: 7px 12px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; }
   .toast.show { opacity: 1; }
-  @media (prefers-reduced-motion: reduce) { .prob .t i { transition: none; } .call .ret .cur { animation: none; } .transcript { scroll-behavior: auto; } }
+  @media (prefers-reduced-motion: reduce) { .flow .edge.on, .flow .feed.on, .flow .think.on, .flow .back.on, .flow .node.on .ring, .brand .dot.live, .flow .hosp.bad rect { animation: none; } }
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- ================= sidebar ================= -->
   <aside class="side">
     <div class="top">
       <div class="brand"><span class="dot" id="dot"></span>AgentForge<small id="tracing">—</small></div>
-      <div class="cockpit" style="border:0;padding:8px 0 0">
-        <div class="st" id="status">connecting…</div>
-      </div>
+      <div class="st" id="status">connecting…</div>
     </div>
     <h3>Runs</h3>
     <div class="runs" id="runs"><div class="sys">loading…</div></div>
-    <h3>Effect ledger</h3>
-    <div class="ledger" id="ledger"><span class="empty">no actions yet</span></div>
+    <h3>What each move did</h3>
+    <div class="ledger" id="ledger"><span class="empty">no moves yet</span></div>
     <div class="cockpit">
-      <h3 style="padding:0 0 2px">Cockpit</h3>
-      <label>target accuracy <input type="number" id="cTarget" step="0.01" min="0.5" max="0.99" placeholder="0.85" style="font:inherit;font-family:var(--mono);background:var(--bg);color:var(--ink);border:1px solid var(--border-2);border-radius:6px;padding:4px 8px"></label>
-      <label>freeze sites <span class="chk" id="cFreeze"></span></label>
-      <div style="display:flex;gap:6px;align-items:center"><button class="mini" id="cApply">apply</button><button class="mini" id="cClear">clear</button><span class="st" id="cState"></span></div>
+      <h3 style="padding:0 0 2px">Steer the run</h3>
+      <label>target accuracy <input type="number" id="cTarget" step="0.01" min="0.5" max="0.99" placeholder="0.85"></label>
+      <label>block these hospitals <span class="chk" id="cFreeze"></span></label>
+      <div style="display:flex;gap:6px;align-items:center"><button class="mini" id="cApply">apply</button><button class="mini" id="cClear">clear</button><span class="st" id="cState" style="margin:0"></span></div>
     </div>
   </aside>
 
-  <!-- ================= center ================= -->
   <main class="main">
     <div class="bar">
       <span id="runTitle">no run selected</span>
-      <div class="phases" id="phases"><span>train</span><span>evaluate</span><span>diagnose</span><span>act</span></div>
+      <div class="phases" id="phases"><span>1 train</span><span>2 score</span><span>3 diagnose</span><span>4 decide</span></div>
       <div class="r" id="replayBar" hidden><button class="mini" id="rPlay">pause</button><button class="mini" id="rPrev">‹</button><button class="mini" id="rNext">›</button><span id="rPos"></span></div>
     </div>
-    <div class="transcript" id="transcript">
-      <div class="chart-wrap"><div class="h"><span>held-out accuracy · fixed split</span><span id="chartMeta"></span></div><svg class="chart" id="chart" viewBox="0 0 720 140" preserveAspectRatio="none"></svg></div>
-      <div id="feed"><div class="empty">Start a run below, or pick a past run to replay.</div></div>
+    <div class="center">
+      <div class="diagram">
+        <svg class="flow" id="flow" viewBox="0 0 980 400" role="img" aria-label="The agent's loop: hospitals feed data; train, score, diagnose, decide, apply the change, repeat.">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrow" id="ahp"/></marker>
+          </defs>
+
+          <!-- hospitals -->
+          <text x="24" y="30" class="title">Hospitals</text>
+          <text x="24" y="46" class="desc">data is unlocked one at a time</text>
+          <g id="hospitals"></g>
+          <path id="feed" class="feed" d="M 150 150 C 190 150, 190 150, 228 150" marker-end="url(#ah)"/>
+
+          <!-- TRAIN -->
+          <g class="node" id="n0" transform="translate(230,80)">
+            <rect class="box" width="160" height="140" rx="10"/><rect class="ring" width="160" height="140" rx="10"/>
+            <text x="14" y="26" class="title">1 · Train</text>
+            <text x="14" y="42" class="desc">fit a model on the unlocked data</text>
+            <g id="trainViz" transform="translate(14,58)"></g>
+            <text x="14" y="128" class="mono" id="trainLbl">model: —</text>
+          </g>
+          <path class="edge" id="e0" d="M 392 150 L 428 150" marker-end="url(#ah)"/>
+
+          <!-- SCORE -->
+          <g class="node" id="n1" transform="translate(430,80)">
+            <rect class="box" width="160" height="140" rx="10"/><rect class="ring" width="160" height="140" rx="10"/>
+            <text x="14" y="26" class="title">2 · Score</text>
+            <text x="14" y="42" class="desc">same held-out exam every round</text>
+            <text x="14" y="84" class="accnum" id="accnum">—</text>
+            <text x="150" y="84" text-anchor="end" class="delta" id="deltat"></text>
+            <rect x="14" y="96" width="132" height="8" rx="4" class="gauge-bg"/>
+            <rect x="14" y="96" width="0" height="8" rx="4" class="gauge" id="gauge"/>
+            <line id="gaugeT" x1="126" x2="126" y1="92" y2="108" class="gauge-t"/>
+            <text x="14" y="126" class="desc" id="gaugeLbl">target 0.85 · published best 0.787</text>
+          </g>
+          <path class="edge" id="e1" d="M 592 150 L 628 150" marker-end="url(#ah)"/>
+
+          <!-- DIAGNOSE -->
+          <g class="node" id="n2" transform="translate(630,80)">
+            <rect class="box" width="160" height="140" rx="10"/><rect class="ring" width="160" height="140" rx="10"/>
+            <text x="14" y="26" class="title">3 · Diagnose</text>
+            <text x="14" y="42" class="desc">reads its own history, explains why</text>
+            <g id="tags" transform="translate(14,58)"></g>
+            <text x="14" y="126" class="desc" id="diagSrc"></text>
+          </g>
+          <path class="edge" id="e2" d="M 792 150 L 828 150" marker-end="url(#ah)"/>
+
+          <!-- DECIDE -->
+          <g class="node" id="n3" transform="translate(830,80)">
+            <rect class="box" width="136" height="140" rx="10"/><rect class="ring" width="136" height="140" rx="10"/>
+            <text x="14" y="26" class="title">4 · Decide</text>
+            <text x="14" y="42" class="desc">pick exactly one move</text>
+            <g id="opts" transform="translate(14,54)"></g>
+            <g class="badge" id="gateBadge" transform="translate(14,116)"><rect width="108" height="16" rx="4"/><text x="6" y="12">unsure → 2nd opinion</text></g>
+          </g>
+
+          <!-- loop back: apply the change -->
+          <path class="back" id="back" d="M 898 222 L 898 262 L 310 262 L 310 222" marker-end="url(#ah)"/>
+          <text x="604" y="280" text-anchor="middle" class="mono" id="backLbl">apply the move, then repeat</text>
+
+          <!-- memory -->
+          <text x="24" y="318" class="title">Memory</text>
+          <text x="24" y="334" class="desc">every round is recorded in Weave; step 3 reads it back</text>
+          <g id="plates" transform="translate(24,344)"></g>
+          <path class="think" id="think" d="M 400 356 C 520 356, 620 300, 700 222"/>
+
+          <!-- token -->
+          <circle class="token" id="token" r="6" cx="310" cy="150"/>
+        </svg>
+      </div>
+      <div class="caption" id="caption"><span class="step" id="capStep">idle</span><div class="txt" id="capTxt">Start a run below, or pick a past run to replay. The dot follows what the agent is doing.</div></div>
+      <div class="chart-wrap"><div class="h"><span>accuracy on the fixed exam, round by round</span><span id="chartMeta"></span></div><svg class="chart" id="chart" viewBox="0 0 720 130" preserveAspectRatio="none"></svg></div>
     </div>
     <div class="composer">
       <div class="box">
@@ -174,19 +263,20 @@
           <span class="chip">--iterations <input type="number" id="iters" min="1" max="30" value="12"></span>
           <span class="chip"><input type="checkbox" id="dry"> --dry-run</span>
           <button class="go" id="start">Run ↵</button>
-          <button class="stop" id="stop" hidden>stop after this iteration</button>
+          <button class="stop" id="stop" hidden>stop after this round</button>
         </div>
-        <div class="line" style="color:var(--ink-3);font-size:11px" id="hint">Runs stream here live over SSE. Every function you see executing on the right is the real code.</div>
       </div>
     </div>
   </main>
 
-  <!-- ================= right: code ================= -->
-  <section class="code">
-    <div class="tabs" id="tabs"></div>
-    <div class="file" id="file"><b>—</b></div>
-    <pre class="src" id="src"></pre>
-    <div class="out" id="out"><div class="h">return value</div><pre id="outv">—</pre></div>
+  <section class="right">
+    <div class="tabs" id="rtabs"><button class="sel" data-p="transcript">transcript</button><button data-p="code">code that is running</button></div>
+    <div class="pane transcript" id="transcript"><div id="feed"><div class="empty">Every function call will be listed here with its real arguments and results.</div></div></div>
+    <div class="pane" id="codePane" hidden>
+      <div class="codetabs tabs" id="tabs"></div>
+      <div class="file" id="file"><b>—</b></div>
+      <pre class="src" id="src"></pre>
+    </div>
   </section>
 </div>
 <div class="toast" id="toast"></div>
@@ -196,224 +286,235 @@
   const $ = id => document.getElementById(id);
   const PHASES = ["train", "evaluate", "diagnose", "act"];
   const PHASE_FN = { train: "train", evaluate: "evaluate", diagnose: "diagnose", act: "decide_action" };
+  const SITES = ["switzerland", "hungary", "va", "cleveland"];
+  const SITE_ROWS = { switzerland: 123, hungary: 294, va: 200, cleveland: 303 };
+  const OPTS = ["acquire_data", "switch_model", "transform_features", "tune_hyperparams", "request_code_fix"];
+  const OPT_LBL = { acquire_data: "get more data", switch_model: "change model", transform_features: "reshape features", tune_hyperparams: "tune settings", request_code_fix: "ask for code fix" };
+  const TAG_LBL = { underfitting: "too simple", overfitting: "memorising", data_starved: "needs data", feature_scale: "scale mismatch", class_imbalance: "lopsided classes", plateau: "stuck" };
+  const MODEL_LBL = { knn: "nearest neighbours", logistic_regression: "logistic regression", random_forest: "random forest", svm: "support vector machine", gradient_boosting: "gradient boosting" };
+  const pct = v => (v * 100).toFixed(1) + "%";
   const sign = v => (v > 0 ? "+" : "") + v.toFixed(3);
+  const pts = v => (v > 0 ? "+" : "") + (v * 100).toFixed(1) + " pts";
   const kind = a => (a || "").split("(")[0];
   const arg = a => { const m = /\{'(?:site|family|op)': '([^']+)'/.exec(a || ""); return m ? m[1] : (a || "").replace(/^[^(]*\(/, "").replace(/\)$/, ""); };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const toast = t => { const b = $("toast"); b.textContent = t; b.classList.add("show"); clearTimeout(toast.tm); toast.tm = setTimeout(() => b.classList.remove("show"), 2600); };
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
 
-  const S = { mode: "idle", run: null, rows: [], target: 0.85, initialSite: "switzerland", phase: -1, iteration: -1, phaseStart: 0, source: {}, tab: "run_iteration", follow: true, live: {} };
+  const S = { mode: "idle", run: null, rows: [], target: 0.85, initialSite: "switzerland", phase: -1, iteration: -1, phaseStart: 0, source: {}, tab: "run_iteration", pinned: false, follow: true, live: {}, badSites: new Set(), poison: null };
+
+  // ------------------------------------------------------------ build the static diagram parts
+  const hospG = $("hospitals");
+  SITES.forEach((s, i) => {
+    const g = el("g", { class: "hosp", id: "h_" + s, transform: `translate(24,${60 + i * 46})` });
+    const h = 14 + Math.round(SITE_ROWS[s] / 303 * 18);
+    g.appendChild(el("rect", { width: 34, height: 34, rx: 5, y: 0 }));
+    [[7, 8], [19, 8], [7, 18], [19, 18]].forEach(([x, y]) => g.appendChild(el("rect", { class: "win", x, y, width: 8, height: 6, rx: 1 })));
+    g.appendChild(el("text", { x: 42, y: 15 }, s));
+    g.appendChild(el("text", { x: 42, y: 29, class: "desc", id: "hs_" + s }, `${SITE_ROWS[s]} patients · locked`));
+    hospG.appendChild(g);
+  });
+  const trainViz = $("trainViz");
+  for (let i = 0; i < 4; i++) trainViz.appendChild(el("rect", { x: i * 32, y: 0, width: 26, height: 40, rx: 4, class: "plate", id: "tv" + i }));
+  const optsG = $("opts");
+  OPTS.forEach((o, i) => {
+    const y = i * 12 + 6;
+    optsG.appendChild(el("line", { class: "opt", id: "opt_" + o, x1: 0, x2: 40, y1: y, y2: y }));
+    optsG.appendChild(el("text", { class: "optt", id: "optt_" + o, x: 46, y: y + 3.5 }, OPT_LBL[o]));
+  });
+  const platesG = $("plates"); const PLATES = 16;
+  for (let i = 0; i < PLATES; i++) platesG.appendChild(el("rect", { class: "plate", id: "pl" + i, x: i * 23, y: 0, width: 19, height: 26, rx: 3 }));
+
+  // ------------------------------------------------------------ diagram state → visuals
+  const NODE_X = [310, 510, 710, 898], NODE_Y = 150;
+  const tok = { x: 310, y: 150, tx: 310, ty: 150, path: null, t: 0 };
+  const setNodes = k => { for (let j = 0; j < 4; j++) { const n = $("n" + j); n.classList.toggle("on", j === k); n.classList.toggle("done", k >= 0 && j < k); } for (let j = 0; j < 3; j++) $("e" + j).classList.toggle("on", k === j + 1); $("back").classList.toggle("on", k === 3 && S.applying); $("think").classList.toggle("on", k === 2); $("feed").classList.toggle("on", !!S.feeding); [...$("phases").children].forEach((s, j) => s.className = j === k ? "on" : (k >= 0 && j < k) ? "done" : ""); };
+  const moveToken = k => { if (k < 0) return; tok.tx = NODE_X[k]; tok.ty = NODE_Y; };
+  function animate(now) {
+    // token glides between nodes; along the loop-back it follows the rectangle path
+    if (tok.path) { tok.t = Math.min(1, tok.t + 0.012); const p = tok.path; const L = p.getTotalLength(); const pt = p.getPointAtLength(L * tok.t); tok.x = pt.x; tok.y = pt.y; if (tok.t >= 1) { tok.path = null; } }
+    else { tok.x += (tok.tx - tok.x) * 0.08; tok.y += (tok.ty - tok.y) * 0.08; }
+    $("token").setAttribute("cx", tok.x); $("token").setAttribute("cy", tok.y);
+    // memory plates being read pulse during diagnosis
+    if (S.phase === 2) { const n = S.rows.length; for (let i = 0; i < Math.min(n, PLATES); i++) $("pl" + i).classList.toggle("read", Math.floor(now / 160) % Math.max(1, n) === i); }
+    sweep(now);
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+  function drawHospitals(sites, acquiring) {
+    SITES.forEach(s => { const g = $("h_" + s); const lit = sites.includes(s) || acquiring === s; g.classList.toggle("lit", lit); g.classList.toggle("bad", S.badSites.has(s)); $("hs_" + s).textContent = `${SITE_ROWS[s]} patients · ${S.badSites.has(s) ? "noisy labels (documented)" : lit ? "in use" : "locked"}`; });
+    const n = sites.length; for (let i = 0; i < 4; i++) $("tv" + i).classList.toggle("lit", i < n);
+  }
+  function drawScore(acc, prev) {
+    const a = $("accnum"); a.textContent = acc != null ? pct(acc) : "—"; a.classList.toggle("hit", acc != null && acc >= S.target);
+    $("gauge").setAttribute("width", acc != null ? Math.max(0, (acc - 0.4) / 0.6) * 132 : 0);
+    $("gaugeT").setAttribute("x1", 14 + (S.target - 0.4) / 0.6 * 132); $("gaugeT").setAttribute("x2", 14 + (S.target - 0.4) / 0.6 * 132);
+    $("gaugeLbl").textContent = `target ${pct(S.target)} · published best 78.7%`;
+    const d = $("deltat"); if (acc != null && prev != null) { const dv = acc - prev; d.textContent = pts(dv); d.setAttribute("class", "delta " + (dv > 0.001 ? "up" : dv < -0.001 ? "down" : "")); } else d.textContent = "";
+  }
+  function drawTags(tags, src) {
+    const g = $("tags"); g.innerHTML = ""; let x = 0, y = 0;
+    (tags || []).slice(0, 4).forEach(t => { const lbl = TAG_LBL[t] || t; const w = lbl.length * 6.4 + 12; if (x + w > 132) { x = 0; y += 20; } g.appendChild(el("rect", { class: "tag", x, y, width: w, height: 16, rx: 4 })); g.appendChild(el("text", { class: "tagt", x: x + 6, y: y + 11.5 }, lbl)); x += w + 6; });
+    $("diagSrc").textContent = src || "";
+  }
+  function drawOptions(probs, picked, gate) {
+    OPTS.forEach(o => { const p = probs && probs[o] != null ? probs[o] : null; const line = $("opt_" + o), t = $("optt_" + o); line.setAttribute("x2", p != null ? 4 + p * 36 : 40); line.classList.toggle("pick", picked === o); t.classList.toggle("pick", picked === o); t.textContent = OPT_LBL[o] + (p != null ? ` ${Math.round(p * 100)}%` : ""); });
+    $("gateBadge").classList.toggle("on", !!gate);
+  }
+  function drawPlates(n) { for (let i = 0; i < PLATES; i++) { const p = $("pl" + i); p.classList.toggle("lit", i < n); if (S.phase !== 2) p.classList.remove("read"); } }
+  function caption(step, text, small) { const c = $("caption"); $("capStep").textContent = step; $("capTxt").innerHTML = esc(text) + (small ? `<small>${esc(small)}</small>` : ""); c.classList.remove("enter"); void c.offsetWidth; c.classList.add("enter"); }
 
   // ------------------------------------------------------------ code pane
-  const hl = line => esc(line)
-    .replace(/(#.*)$/, '<span class="c">$1</span>')
-    .replace(/(&quot;&quot;&quot;.*?&quot;&quot;&quot;|&quot;.*?&quot;|'.*?')/g, '<span class="s">$1</span>')
-    .replace(/^(\s*)(@[\w.]+)/, '$1<span class="d">$2</span>')
-    .replace(/\b(def|return|if|elif|else|for|in|not|and|or|is|None|True|False|import|from|as|with|try|except|raise|lambda|while|continue|break|pass|class)\b/g, '<span class="k">$1</span>')
-    .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="num">$1</span>')
-    .replace(/\b([a-zA-Z_]\w*)(?=\()/g, '<span class="f">$1</span>');
-  function renderTabs() {
-    const order = ["run_iteration", "train", "evaluate", "build_history", "diagnose", "decide_action", "typesafe_decide", "second_opinion", "act"];
-    const running = S.phase >= 0 ? PHASE_FN[PHASES[S.phase]] : null;
-    $("tabs").innerHTML = order.filter(k => S.source[k]).map(k => `<button data-k="${k}" class="${k === S.tab ? "sel" : ""}${k === running ? " run" : ""}">${k}()</button>`).join("");
-    [...$("tabs").children].forEach(b => b.onclick = () => { S.tab = b.dataset.k; S.follow = false; renderCode(); });
-  }
-  function renderCode() {
-    const src = S.source[S.tab]; if (!src) return;
-    const running = S.phase >= 0 && PHASE_FN[PHASES[S.phase]] === S.tab;
-    $("file").innerHTML = `<b>${esc(src.file)}</b>:${src.line} <span>${S.tab}()</span>${running ? `<span class="st">● executing · iteration ${S.iteration}</span>` : ""}`;
-    const lines = src.source.replace(/\n$/, "").split("\n");
-    $("src").innerHTML = lines.map((l, i) => `<div class="ln" data-i="${i}"><span class="n">${src.line + i}</span><span>${hl(l) || " "}</span></div>`).join("");
-    renderTabs();
-  }
-  // a sweep highlight walks the executing function's body (we don't get line events, only phase events)
-  function sweep(now) {
-    const src = S.source[S.tab]; const running = S.phase >= 0 && PHASE_FN[PHASES[S.phase]] === S.tab;
-    const lns = $("src").children; const n = lns.length;
-    if (!running || !n) { for (const l of lns) l.className = "ln"; requestAnimationFrame(sweep); return; }
-    const t = (now - S.phaseStart) / 1000, body = Math.max(1, n - 2);
-    const pos = 2 + Math.floor((t * 6) % body);
-    for (let i = 0; i < n; i++) lns[i].className = "ln" + (i === pos ? " hot" : i >= 2 && i < pos ? " warm" : "");
-    requestAnimationFrame(sweep);
-  }
-  requestAnimationFrame(sweep);
-  const setOut = (label, value) => { $("out").querySelector(".h").textContent = label; $("outv").textContent = value; };
+  const hl = line => esc(line).replace(/(#.*)$/, '<span class="c">$1</span>').replace(/(&quot;.*?&quot;|'.*?')/g, '<span class="s">$1</span>').replace(/^(\s*)(@[\w.]+)/, '$1<span class="d">$2</span>').replace(/\b(def|return|if|elif|else|for|in|not|and|or|is|None|True|False|import|from|as|with|try|except|raise|lambda|while|continue|break|pass|class)\b/g, '<span class="k">$1</span>').replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="num">$1</span>').replace(/\b([a-zA-Z_]\w*)(?=\()/g, '<span class="f">$1</span>');
+  function renderTabs() { const order = ["run_iteration", "train", "evaluate", "build_history", "diagnose", "decide_action", "typesafe_decide", "second_opinion", "act"]; const running = S.phase >= 0 ? PHASE_FN[PHASES[S.phase]] : null; $("tabs").innerHTML = order.filter(k => S.source[k]).map(k => `<button data-k="${k}" class="${k === S.tab ? "sel" : ""}${k === running ? " run" : ""}">${k}()</button>`).join(""); [...$("tabs").children].forEach(b => b.onclick = () => { S.tab = b.dataset.k; S.pinned = true; renderCode(); }); }
+  function renderCode() { const src = S.source[S.tab]; if (!src) return; const running = S.phase >= 0 && PHASE_FN[PHASES[S.phase]] === S.tab; $("file").innerHTML = `<b>${esc(src.file)}</b>:${src.line}${running ? `<span class="stt">● executing · round ${S.iteration}</span>` : ""}`; $("src").innerHTML = src.source.replace(/\n$/, "").split("\n").map((l, i) => `<div class="ln"><span class="n">${src.line + i}</span><span>${hl(l) || " "}</span></div>`).join(""); renderTabs(); }
+  function sweep(now) { const running = S.phase >= 0 && PHASE_FN[PHASES[S.phase]] === S.tab; const lns = $("src").children, n = lns.length; if (!running || !n || $("codePane").hidden) { return; } const pos = 2 + Math.floor(((now - S.phaseStart) / 1000 * 6) % Math.max(1, n - 2)); for (let i = 0; i < n; i++) lns[i].className = "ln" + (i === pos ? " hot" : i >= 2 && i < pos ? " warm" : ""); }
+  [...$("rtabs").children].forEach(b => b.onclick = () => { [...$("rtabs").children].forEach(x => x.classList.toggle("sel", x === b)); $("transcript").hidden = b.dataset.p !== "transcript"; $("codePane").hidden = b.dataset.p !== "code"; });
 
   // ------------------------------------------------------------ transcript
   const feed = $("feed");
   const scrollFeed = () => { if (S.follow) $("transcript").scrollTop = $("transcript").scrollHeight; };
   $("transcript").addEventListener("scroll", () => { const t = $("transcript"); S.follow = t.scrollHeight - t.scrollTop - t.clientHeight < 60; });
-  const iterEl = i => { let el = feed.querySelector(`[data-iter="${i}"]`); if (!el) { if (feed.querySelector(".empty")) feed.innerHTML = ""; el = document.createElement("div"); el.className = "iter"; el.dataset.iter = i; el.innerHTML = `<div class="h"><b>iteration ${i}</b><span class="meta"></span></div>`; feed.appendChild(el); } return el; };
+  const iterEl = i => { let e = feed.querySelector(`[data-iter="${i}"]`); if (!e) { if (feed.querySelector(".empty")) feed.innerHTML = ""; e = document.createElement("div"); e.className = "iter"; e.dataset.iter = i; e.innerHTML = `<div class="h"><b>round ${i}</b><span class="meta"></span></div>`; feed.appendChild(e); } return e; };
   const callEl = (i, name) => { const it = iterEl(i); let c = it.querySelector(`[data-call="${name}"]`); if (!c) { c = document.createElement("div"); c.className = "call"; c.dataset.call = name; c.innerHTML = `<span class="ic">$</span><span class="sig"></span>`; it.appendChild(c); } return c; };
   const sysLine = (text, cls = "") => { if (feed.querySelector(".empty")) feed.innerHTML = ""; const d = document.createElement("div"); d.className = "sys " + cls; d.textContent = text; feed.appendChild(d); scrollFeed(); };
   const sig = (fn, args) => `<span class="fn">${fn}</span>(<span class="arg">${args}</span>)`;
   const waiting = `<span class="ret"><span class="cur"></span></span>`;
   const setActive = (i, name) => { feed.querySelectorAll(".call.on").forEach(c => c.classList.remove("on")); if (name) callEl(i, name).classList.add("on"); };
-
-  function onPhase(ev) {
-    const i = ev.iteration, k = PHASES.indexOf(ev.phase); S.iteration = i; S.phase = k; S.phaseStart = performance.now();
-    setPhaseBar(k); if (S.follow !== false || S.tab === PHASE_FN[ev.phase]) { S.tab = PHASE_FN[ev.phase]; } renderCode();
-    const it = iterEl(i);
-    if (k === 0) {
-      S.live = { sites: ev.sites, model: ev.model_family, ops: ev.feature_ops };
-      const c = callEl(i, "train"); c.querySelector(".sig").innerHTML = sig("train", `state=&lt;${esc(ev.model_family)} · ${(ev.sites || []).map(s => s.slice(0, 2)).join("+")}${(ev.feature_ops || []).length ? " · " + ev.feature_ops.join(",") : ""}&gt;, X_train, y_train`) + waiting;
-      setOut("return value", "fitting…");
-    } else if (k === 1) {
-      resolve(i, "train", `<span class="ok">→ Pipeline(${esc([...(S.live.ops || []), S.live.model].join(" → "))})</span>`);
-      const c = callEl(i, "evaluate"); c.querySelector(".sig").innerHTML = sig("evaluate", "model, X_train, y_train, X_test, y_test") + waiting;
-      setOut("return value", "scoring the fixed held-out split…");
-    } else if (k === 2) {
-      const prev = S.rows.find(r => r.iteration === i - 1);
-      const dv = prev ? ev.accuracy - prev.accuracy : null;
-      resolve(i, "evaluate", `<span class="ok">→ accuracy ${ev.accuracy.toFixed(3)}</span>${dv != null ? ` · <span class="${dv > 0.001 ? "ok" : dv < -0.001 ? "bad" : ""}">Δ ${sign(dv)} after ${esc(kind(prev.action))}</span>` : ""}`);
-      it.querySelector(".meta").innerHTML = `<span class="pill${dv > 0.001 ? " up" : dv < -0.001 ? " down" : ""}">${ev.accuracy.toFixed(3)}${dv != null ? " · Δ " + sign(dv) : ""}</span>`;
-      const c = callEl(i, "diagnose"); c.querySelector(".sig").innerHTML = sig("diagnose", "eval_result, history=build_history(state)") + waiting;
-      setOut("evaluate() returned", JSON.stringify({ accuracy: +ev.accuracy.toFixed(4) }, null, 1));
-    } else if (k === 3) {
-      const d = ev.diagnosis || {};
-      resolve(i, "diagnose", `<span class="ok">→ ${(d.evidence_tags || []).length ? "tags" : "no tags"}</span><span class="tags">${(d.evidence_tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join("")}</span> <span class="arg">· history ${esc(d.history_source || "local")}${(d.cited_trace_ids || []).length ? ` · cited ${d.cited_trace_ids.length} trace${d.cited_trace_ids.length > 1 ? "s" : ""}` : ""} · ${esc(d.provider || "")}</span>`, d.reasoning ? `<div class="say">${esc(d.reasoning)}</div>` : "");
-      const c = callEl(i, "decide_action"); c.querySelector(".sig").innerHTML = sig("decide_action", "diagnosis, unrevealed_sites, model_family, …") + waiting;
-      setOut("diagnose() returned", JSON.stringify({ evidence_tags: d.evidence_tags, cited_trace_ids: (d.cited_trace_ids || []).slice(0, 3), history_source: d.history_source, provider: d.provider }, null, 1));
-    }
-    setActive(i, PHASE_FN[ev.phase]); scrollFeed();
-  }
   function resolve(i, name, html, extra = "") { const c = callEl(i, name); const r = c.querySelector(".ret"); if (r) r.outerHTML = `<span class="ret">${html}</span>${extra}`; else c.insertAdjacentHTML("beforeend", `<span class="ret">${html}</span>${extra}`); }
 
+  // ------------------------------------------------------------ events
+  function onPhase(ev) {
+    const i = ev.iteration, k = PHASES.indexOf(ev.phase); S.iteration = i; S.phase = k; S.phaseStart = performance.now();
+    if (!S.pinned) S.tab = PHASE_FN[ev.phase]; renderCode();
+    const prev = S.rows.find(r => r.iteration === i - 1);
+    if (k === 0) {
+      S.live = { sites: ev.sites, model: ev.model_family, ops: ev.feature_ops }; S.feeding = false; S.applying = false;
+      if (tok.path == null) moveToken(0);
+      drawHospitals(ev.sites, null); $("trainLbl").textContent = `model: ${MODEL_LBL[ev.model_family] || ev.model_family}${(ev.feature_ops || []).length ? " · " + ev.feature_ops.join(", ") : ""}`;
+      drawTags([], ""); drawOptions(null, null, false);
+      caption(`round ${i} · train`, `Fitting a ${MODEL_LBL[ev.model_family] || ev.model_family} on data from ${ev.sites.length} hospital${ev.sites.length > 1 ? "s" : ""} (${ev.sites.join(", ")}).`, prev ? `Last round it chose “${OPT_LBL[kind(prev.action)] || kind(prev.action)}” — now we find out if that helped.` : "The test set is fixed and never trained on, so every round is scored on the same exam.");
+      callEl(i, "train").querySelector(".sig").innerHTML = sig("train", `state=&lt;${esc(ev.model_family)} · ${(ev.sites || []).map(s => s.slice(0, 2)).join("+")}&gt;, X_train, y_train`) + waiting;
+    } else if (k === 1) {
+      moveToken(1); resolve(i, "train", `<span class="ok">→ Pipeline(${esc([...(S.live.ops || []), S.live.model].join(" → "))})</span>`);
+      caption(`round ${i} · score`, "Scoring the model on the held-out exam — 185 patients it has never seen.");
+      callEl(i, "evaluate").querySelector(".sig").innerHTML = sig("evaluate", "model, X_test, y_test") + waiting;
+    } else if (k === 2) {
+      moveToken(2); const dv = prev ? ev.accuracy - prev.accuracy : null; drawScore(ev.accuracy, prev ? prev.accuracy : null);
+      resolve(i, "evaluate", `<span class="ok">→ accuracy ${ev.accuracy.toFixed(3)}</span>${dv != null ? ` · <span class="${dv > 0.001 ? "ok" : dv < -0.001 ? "bad" : ""}">Δ ${sign(dv)}</span>` : ""}`);
+      iterEl(i).querySelector(".meta").innerHTML = `<span class="pill${dv > 0.001 ? " up" : dv < -0.001 ? " down" : ""}">${pct(ev.accuracy)}${dv != null ? " · " + pts(dv) : ""}</span>`;
+      const verdict = dv == null ? "" : dv > 0.001 ? `That's ${pts(dv)} better than last round — the last move helped.` : dv < -0.001 ? `That's ${pts(dv)} worse than last round — the last move hurt.` : "No change from last round — the last move did nothing.";
+      caption(`round ${i} · diagnose`, `It scored ${pct(ev.accuracy)}${ev.accuracy >= S.target ? " — above the target." : ` (target ${pct(S.target)}).`} ${verdict}`, `Now it reads its own memory — ${S.rows.length} earlier round${S.rows.length === 1 ? "" : "s"} recorded in Weave — and explains what's wrong.`);
+      callEl(i, "diagnose").querySelector(".sig").innerHTML = sig("diagnose", "eval_result, history") + waiting;
+    } else if (k === 3) {
+      moveToken(3); const d = ev.diagnosis || {}; const tags = d.evidence_tags || [];
+      drawTags(tags, `${d.history_source === "weave_api" ? "read from Weave" : "from this run"}${(d.cited_trace_ids || []).length ? ` · cited ${d.cited_trace_ids.length} past trace${d.cited_trace_ids.length > 1 ? "s" : ""}` : ""}`);
+      resolve(i, "diagnose", `<span class="ok">→ ${tags.length ? tags.map(esc).join(", ") : "no tags"}</span> <span class="arg">· history ${esc(d.history_source || "local")} · ${esc(d.provider || "")}</span>`, d.reasoning ? `<div class="say">${esc(d.reasoning)}</div>` : "");
+      const plain = tags.map(t => TAG_LBL[t] || t);
+      caption(`round ${i} · decide`, plain.length ? `Its diagnosis: ${plain.join(", ")}.` : "Its diagnosis found no strong signal.", d.reasoning ? `“${d.reasoning.slice(0, 220)}${d.reasoning.length > 220 ? "…" : ""}”` : "");
+      callEl(i, "decide_action").querySelector(".sig").innerHTML = sig("decide_action", "diagnosis, options") + waiting;
+    }
+    setNodes(k); setActive(i, PHASE_FN[ev.phase]); scrollFeed();
+  }
   function onIteration(ev) {
     const r = ev.row; S.rows = S.rows.filter(x => x.iteration !== r.iteration).concat([r]).sort((a, b) => a.iteration - b.iteration);
-    S.iteration = r.iteration; S.target = r.target ?? S.target;
-    const i = r.iteration, it = iterEl(i);
-    if (!it.querySelector(".meta").innerHTML) { const prev = S.rows.find(x => x.iteration === i - 1); const dv = prev ? r.accuracy - prev.accuracy : null; it.querySelector(".meta").innerHTML = `<span class="pill${dv > 0.001 ? " up" : dv < -0.001 ? " down" : ""}">${r.accuracy.toFixed(3)}${dv != null ? " · Δ " + sign(dv) : ""}</span>`; }
+    S.iteration = r.iteration; S.target = r.target ?? S.target; const i = r.iteration, it = iterEl(i);
+    const prev = S.rows.find(x => x.iteration === i - 1);
+    if (r.poison && prev && kind(prev.action) === "acquire_data" && arg(prev.action) === r.poison.site && r.accuracy < prev.accuracy) { S.badSites.add(r.poison.site); sysLine(`the ${r.poison.site} data it just added carried label noise (documented): score fell ${pts(r.accuracy - prev.accuracy)}`, "warn"); }
+    drawScore(r.accuracy, prev ? prev.accuracy : null); drawHospitals(r.sites, null); drawPlates(S.rows.length);
+    if (!it.querySelector(".meta").innerHTML) { const dv = prev ? r.accuracy - prev.accuracy : null; it.querySelector(".meta").innerHTML = `<span class="pill${dv > 0.001 ? " up" : dv < -0.001 ? " down" : ""}">${pct(r.accuracy)}${dv != null ? " · " + pts(dv) : ""}</span>`; }
     if (r.stop === "target") {
-      resolve(i, "evaluate", `<span class="ok">→ accuracy ${r.accuracy.toFixed(3)} ≥ target ${S.target}</span>`);
-      it.insertAdjacentHTML("beforeend", `<div class="end good">target beaten · loop stops</div>`);
+      drawOptions(null, null, false); setNodes(1); S.phase = -1;
+      resolve(i, "evaluate", `<span class="ok">→ accuracy ${r.accuracy.toFixed(3)} ≥ target ${S.target}</span>`); it.insertAdjacentHTML("beforeend", `<div class="end good">target beaten · loop stops</div>`);
+      caption(`round ${i} · done`, `${pct(r.accuracy)} beats the ${pct(S.target)} target. The loop stops here.`, `It took ${S.rows.length} round${S.rows.length > 1 ? "s" : ""}, starting from one small hospital.`);
     } else {
-      const probs = r.jev_probabilities ? Object.entries(r.jev_probabilities).sort((a, b) => b[1] - a[1]) : [];
-      const probsHtml = probs.length ? `<div class="probs">${probs.map(([kx, v], j) => `<div class="prob${j === 0 ? " top" : ""}"><span>${esc(kx)}</span><div class="t"><i style="width:${(v * 100).toFixed(0)}%"></i></div><em>${v.toFixed(2)}</em></div>`).join("")}</div>` : "";
-      const gate = r.escalation ? `<div class="gate">gate: confidence ${r.jev_confidence.toFixed(2)} &lt; 0.40 → second_opinion() said <b>${esc(r.escalation.verdict)}</b>${r.escalation.critique ? ` <q>${esc(r.escalation.critique)}</q>` : ""}</div>` : "";
+      const k = kind(r.action), probs = r.jev_probabilities || null;
+      drawOptions(probs, k, !!r.escalation);
+      const probsHtml = probs ? `<div class="say" style="font-family:var(--mono);font-size:11px;color:var(--ink-2)">${Object.entries(probs).sort((a, b) => b[1] - a[1]).map(([kx, v]) => `${esc(kx)} ${v.toFixed(2)}`).join(" · ")}</div>` : "";
+      const gate = r.escalation ? `<div class="say" style="color:var(--amber)">gate: confidence ${r.jev_confidence.toFixed(2)} &lt; 0.40 → second_opinion() said ${esc(r.escalation.verdict)}${r.escalation.critique ? ` — “${esc(r.escalation.critique)}”` : ""}</div>` : "";
       const ac = r.accounting || {};
-      resolve(i, "decide_action", `<span class="ok">→ ${esc(r.provider || "")}</span> <span class="arg">· ${ac.latency_s != null ? ac.latency_s.toFixed(2) + " s" : ""}${ac.input_tokens != null ? ` · ${ac.input_tokens}/${ac.output_tokens} tok` : ""}${ac.usd != null ? ` · $${ac.usd.toFixed(5)}` : ""}</span>`, probsHtml + gate);
-      const c = callEl(i, "act"); c.querySelector(".sig").innerHTML = sig("act", esc(r.action || "")) + `<span class="ret"><span class="ok">✓ applied</span> <span class="arg">· effect measured next iteration</span></span>`;
-      setOut("decide_action() returned", JSON.stringify({ provider: r.provider, action: r.action, jev_confidence: r.jev_confidence, escalation: r.escalation ? r.escalation.verdict : null }, null, 1));
+      resolve(i, "decide_action", `<span class="ok">→ ${esc(r.provider || "")}</span> <span class="arg">· ${ac.latency_s != null ? ac.latency_s.toFixed(2) + " s" : ""}${ac.input_tokens != null ? ` · ${ac.input_tokens}/${ac.output_tokens} tok` : ""}</span>`, probsHtml + gate);
+      callEl(i, "act").querySelector(".sig").innerHTML = sig("act", esc(r.action || "")) + `<span class="ret"><span class="ok">✓ applied</span> <span class="arg">· effect measured next round</span></span>`;
+      const what = { acquire_data: `unlock the ${arg(r.action)} hospital's data`, switch_model: `switch to a ${MODEL_LBL[arg(r.action)] || arg(r.action)}`, transform_features: `reshape the features (${arg(r.action)})`, tune_hyperparams: `tune the current model's settings`, request_code_fix: `ask an engineer for a code change` }[k] || r.action;
+      const conf = r.jev_confidence != null ? `${Math.round(r.jev_confidence * 100)}% sure` : null;
+      caption(`round ${i} · move`, `It decided to ${what}${conf ? ` — ${conf}` : ""}.`, r.escalation ? `It wasn't confident (below 40%), so it asked the reasoning model for a second opinion, which said “${r.escalation.verdict}”.` : `Decided by ${r.provider}${ac.latency_s != null ? ` in ${ac.latency_s.toFixed(2)} s` : ""}. The effect shows up as the score of the next round.`);
+      // token rides the loop-back path; hospitals feed animation if data was acquired
+      S.applying = true; setNodes(3); tok.path = $("back"); tok.t = 0;
+      if (k === "acquire_data") { S.feeding = true; drawHospitals(r.sites, arg(r.action)); setTimeout(() => { S.feeding = false; $("feed").classList.remove("on"); }, 2500); }
     }
-    if (r.poison) { const prev = S.rows.find(x => x.iteration === i - 1); if (prev && kind(prev.action) === "acquire_data" && arg(prev.action) === r.poison.site && r.accuracy < prev.accuracy) sysLine(`the acquired site ${r.poison.site} carried label noise (documented): accuracy fell ${sign(r.accuracy - prev.accuracy)} — the ledger now shows it`, "warn"); }
-    setActive(i, null); S.phase = r.stop === "target" ? -1 : 3; setPhaseBar(S.phase); renderCode(); renderChart(); renderLedger(); scrollFeed();
+    setActive(i, null); renderChart(); renderLedger(); scrollFeed();
   }
   function onRunStart(ev) {
-    S.run = ev.run_name; S.rows = []; S.iteration = -1; S.phase = -1; S.target = ev.target; S.follow = true; feed.innerHTML = "";
+    S.run = ev.run_name; S.rows = []; S.iteration = -1; S.phase = -1; S.target = ev.target; S.follow = true; S.badSites = new Set(); S.poison = ev.poison; feed.innerHTML = ""; tok.path = null; tok.x = tok.tx = 310; tok.y = tok.ty = 150;
     $("runTitle").textContent = `${ev.run_name}${ev.poison ? ` · poison ${ev.poison.site} ${Math.round(ev.poison.label_noise * 100)}%` : ""}${ev.dry_run ? " · dry run" : ""} · weave ${ev.tracing}`;
-    sysLine(`run ${ev.run_name} · target ${ev.target} · max ${ev.max_iterations} iterations · start site ${ev.initial_site}${ev.poison ? ` · ADVERSARIAL: ${Math.round(ev.poison.label_noise * 100)}% of ${ev.poison.site} train labels flipped (agent not told)` : ""}`, "hi");
-    setPhaseBar(-1); renderChart(); renderLedger(); markRun(ev.run_name);
+    drawHospitals([ev.initial_site || S.initialSite], null); drawScore(null, null); drawTags([], ""); drawOptions(null, null, false); drawPlates(0); setNodes(-1);
+    caption("start", `New run. The agent starts with one small hospital (${ev.initial_site}) and has to earn its way to ${pct(ev.target)} accuracy.`, ev.poison ? `Adversarial test: ${Math.round(ev.poison.label_noise * 100)}% of ${ev.poison.site}'s training labels are secretly flipped. Will it notice from its own results?` : "It may unlock more hospitals, change models, reshape features, tune settings, or ask for a code fix — one move per round.");
+    sysLine(`run ${ev.run_name} · target ${ev.target} · max ${ev.max_iterations} rounds · start ${ev.initial_site}${ev.poison ? ` · ADVERSARIAL ${ev.poison.site}` : ""}`, "hi");
+    renderChart(); renderLedger(); markRun(ev.run_name);
   }
   function onRunEnd(ev) {
-    S.phase = -1; setPhaseBar(-1); renderCode();
-    const cls = ev.stop === "target" ? "good" : ev.stop && ev.stop.startsWith("error") ? "bad" : "";
-    if (ev.stop !== "target") feed.insertAdjacentHTML("beforeend", `<div class="end ${cls}">stopped: ${esc(ev.stop)} · final ${ev.accuracy != null ? ev.accuracy.toFixed(3) : "—"} after ${ev.iterations} iteration(s)</div>`);
+    S.phase = -1; setNodes(-1); renderCode(); S.applying = false;
+    if (ev.stop !== "target") { feed.insertAdjacentHTML("beforeend", `<div class="end ${ev.stop && ev.stop.startsWith("error") ? "bad" : ""}">stopped: ${esc(ev.stop)} · final ${ev.accuracy != null ? ev.accuracy.toFixed(3) : "—"}</div>`); caption("stopped", ev.stop === "plateau" ? `Three moves in a row made no difference, so it stopped honestly at ${pct(ev.accuracy)}.` : ev.stop === "operator" ? `Stopped by you at ${pct(ev.accuracy)}.` : `Ran out of rounds at ${ev.accuracy != null ? pct(ev.accuracy) : "—"} (${esc(ev.stop)}).`, "Every round above is one click deep in Weave."); }
     scrollFeed(); if (S.mode === "live") { setStatus(false); loadRuns(); }
   }
-  const setPhaseBar = k => [...$("phases").children].forEach((s, j) => s.className = j === k ? "on" : (k >= 0 && j < k) ? "done" : "");
-
   function onEvent(ev) {
-    if (ev.type === "run_start") onRunStart(ev);
-    else if (ev.type === "phase") onPhase(ev);
-    else if (ev.type === "iteration") onIteration(ev);
-    else if (ev.type === "log") { if (/^(iter |Target|Plateau|Stopped|ADVERSARIAL|!!|operator|cockpit)/.test(ev.text)) sysLine(ev.text, /!!|ADVERSARIAL/.test(ev.text) ? "warn" : "hi"); }
-    else if (ev.type === "run_end") onRunEnd(ev);
-    else if (ev.type === "status") setStatus(ev.running, ev.run_name, ev);
+    if (ev.type === "run_start") onRunStart(ev); else if (ev.type === "phase") onPhase(ev); else if (ev.type === "iteration") onIteration(ev);
+    else if (ev.type === "log") { if (/^(Target|Plateau|Stopped|!!|operator|cockpit)/.test(ev.text)) sysLine(ev.text, /!!/.test(ev.text) ? "warn" : "hi"); }
+    else if (ev.type === "run_end") onRunEnd(ev); else if (ev.type === "status") setStatus(ev.running, ev.run_name, ev);
   }
 
   // ------------------------------------------------------------ chart + ledger
   function renderChart() {
-    const rows = S.rows, W = 720, H = 140, L = 34, Rr = 12, T = 10, B = 18;
+    const rows = S.rows, W = 720, H = 130, L = 34, Rr = 12, T = 12, B = 18;
     const n = Math.max(rows.length, 6), x = i => L + (W - L - Rr) * (i / (n - 1)), y = v => T + (H - T - B) * (1 - (v - 0.4) / 0.6);
-    let s = `<g class="grid">${[0.5, 0.7, 0.9].map(v => `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 3}" text-anchor="end">${v.toFixed(1)}</text>`).join("")}</g>`;
-    s += `<line class="target" x1="${L}" x2="${W - Rr}" y1="${y(S.target)}" y2="${y(S.target)}"/><text x="${W - Rr}" y="${y(S.target) - 4}" text-anchor="end">target ${S.target}</text>`;
-    s += `<line class="base" x1="${L}" x2="${W - Rr}" y1="${y(0.787)}" y2="${y(0.787)}"/><text x="${L + 4}" y="${y(0.787) + 11}">published 0.787</text>`;
-    if (rows.length) {
-      s += `<polyline class="train" points="${rows.map((r, i) => `${x(i)},${y(r.train_accuracy)}`).join(" ")}"/><polyline class="acc" points="${rows.map((r, i) => `${x(i)},${y(r.accuracy)}`).join(" ")}"/>`;
-      rows.forEach((r, i) => { s += `<circle cx="${x(i)}" cy="${y(r.accuracy)}" r="3" class="${r.accuracy >= S.target ? "hit" : ""}"><title>iter ${r.iteration}: ${r.accuracy.toFixed(3)}${r.action ? " → " + r.action : ""}</title></circle>`; if (r.action) s += `<text x="${x(i)}" y="${y(r.accuracy) - 8}" text-anchor="middle">${esc(kind(r.action).replace("_", " "))}</text>`; });
-    }
-    $("chart").innerHTML = s; $("chartMeta").textContent = rows.length ? `${rows.length} it · best ${Math.max(...rows.map(r => r.accuracy)).toFixed(3)} · last ${rows[rows.length - 1].accuracy.toFixed(3)}` : "";
+    let s = `<g class="grid">${[0.5, 0.7, 0.9].map(v => `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 3}" text-anchor="end">${Math.round(v * 100)}%</text>`).join("")}</g>`;
+    s += `<line class="target" x1="${L}" x2="${W - Rr}" y1="${y(S.target)}" y2="${y(S.target)}"/><text x="${W - Rr}" y="${y(S.target) - 4}" text-anchor="end">target ${pct(S.target)}</text>`;
+    s += `<line class="base" x1="${L}" x2="${W - Rr}" y1="${y(0.787)}" y2="${y(0.787)}"/><text x="${L + 4}" y="${y(0.787) + 11}">published best 78.7%</text>`;
+    if (rows.length) { s += `<polyline class="train" points="${rows.map((r, i) => `${x(i)},${y(r.train_accuracy)}`).join(" ")}"/><polyline class="acc" points="${rows.map((r, i) => `${x(i)},${y(r.accuracy)}`).join(" ")}"/>`; rows.forEach((r, i) => { s += `<circle cx="${x(i)}" cy="${y(r.accuracy)}" r="3" class="${r.accuracy >= S.target ? "hit" : ""}"><title>round ${r.iteration}: ${pct(r.accuracy)}${r.action ? " → " + r.action : ""}</title></circle>`; if (r.action) s += `<text x="${x(i)}" y="${y(r.accuracy) - 8}" text-anchor="middle">${esc(OPT_LBL[kind(r.action)] || kind(r.action))}</text>`; }); }
+    $("chart").innerHTML = s; $("chartMeta").textContent = rows.length ? `${rows.length} round${rows.length > 1 ? "s" : ""} · best ${pct(Math.max(...rows.map(r => r.accuracy)))}` : "";
   }
   function renderLedger() {
     const rows = S.rows, out = [];
-    for (let j = 1; j < rows.length; j++) { const p = rows[j - 1], x = rows[j]; if (!p.action) continue; const dv = x.accuracy - p.accuracy; out.push(`<div class="${dv > 0.001 ? "up" : dv < -0.001 ? "down" : ""}"><span>${p.iteration}</span><span>${esc(kind(p.action))}(${esc(arg(p.action))})</span><span>${sign(dv)}</span></div>`); }
-    const l = rows[rows.length - 1]; if (l && l.action && S.mode !== "idle") out.push(`<div><span>${l.iteration}</span><span>${esc(kind(l.action))}(${esc(arg(l.action))})</span><span>…</span></div>`);
-    $("ledger").innerHTML = out.join("") || `<span class="empty">no actions yet</span>`;
+    for (let j = 1; j < rows.length; j++) { const p = rows[j - 1], x = rows[j]; if (!p.action) continue; const dv = x.accuracy - p.accuracy; out.push(`<div class="${dv > 0.001 ? "up" : dv < -0.001 ? "down" : ""}"><span>${p.iteration}</span><span>${esc(OPT_LBL[kind(p.action)] || kind(p.action))}${arg(p.action) && kind(p.action) !== "tune_hyperparams" ? " · " + esc(arg(p.action)) : ""}</span><span>${pts(dv)}</span></div>`); }
+    const l = rows[rows.length - 1]; if (l && l.action && S.mode !== "idle") out.push(`<div><span>${l.iteration}</span><span>${esc(OPT_LBL[kind(l.action)] || kind(l.action))}</span><span>…</span></div>`);
+    $("ledger").innerHTML = out.join("") || `<span class="empty">no moves yet</span>`;
   }
 
   // ------------------------------------------------------------ live wiring
-  function setStatus(running, name, info) {
-    $("dot").className = "dot" + (running ? " live" : "");
-    $("status").textContent = running ? `running · ${name}` : "idle";
-    if (info && info.tracing) $("tracing").textContent = `weave ${info.tracing}`;
-    $("start").disabled = !!running; $("stop").hidden = !running;
-    if (info && info.target && !S.rows.length) S.target = info.target;
-    if (info && info.initial_site) S.initialSite = info.initial_site;
-  }
+  function setStatus(running, name, info) { $("dot").className = "dot" + (running ? " live" : ""); $("status").textContent = running ? `running · ${name}` : "idle"; if (info && info.tracing) $("tracing").textContent = `weave ${info.tracing}`; $("start").disabled = !!running; $("stop").hidden = !running; if (info && info.target && !S.rows.length) S.target = info.target; if (info && info.initial_site) S.initialSite = info.initial_site; }
   let es;
-  function connect() {
-    es = new EventSource("/api/events");
-    ["status", "run_start", "phase", "iteration", "log", "run_end"].forEach(t => es.addEventListener(t, e => { if (S.mode === "replay" && t !== "status") return; if (t !== "status") S.mode = "live"; onEvent(JSON.parse(e.data)); }));
-    es.onerror = () => { $("status").textContent = "backend unreachable — retrying"; $("dot").className = "dot"; };
-  }
-  $("start").onclick = async () => {
-    stopReplay(); S.mode = "live"; $("replayBar").hidden = true;
-    const body = { poison_site: $("poisonOn").checked ? $("poison").value : null, iterations: +$("iters").value || null, dry_run: $("dry").checked };
-    const r = await fetch("/api/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    if (!r.ok) toast((await r.json()).detail || "could not start");
-  };
+  function connect() { es = new EventSource("/api/events"); ["status", "run_start", "phase", "iteration", "log", "run_end"].forEach(t => es.addEventListener(t, e => { if (S.mode === "replay" && t !== "status") return; if (t !== "status") S.mode = "live"; onEvent(JSON.parse(e.data)); })); es.onerror = () => { $("status").textContent = "backend unreachable — retrying"; $("dot").className = "dot"; }; }
+  $("start").onclick = async () => { stopReplay(); S.mode = "live"; $("replayBar").hidden = true; const body = { poison_site: $("poisonOn").checked ? $("poison").value : null, iterations: +$("iters").value || null, dry_run: $("dry").checked }; const r = await fetch("/api/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); if (!r.ok) toast((await r.json()).detail || "could not start"); };
   $("stop").onclick = () => fetch("/api/runs/stop", { method: "POST" });
   addEventListener("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !$("start").disabled) $("start").click(); });
-
-  async function loadRuns() {
-    const runs = await (await fetch("/api/runs")).json();
-    $("runs").innerHTML = runs.map(r => `<div class="run${r.name === S.run ? " sel" : ""}" data-n="${esc(r.name)}"><span class="n">${esc(r.name)}</span><span class="a${r.final_accuracy >= (r.target || 0.85) ? " hit" : ""}">${r.final_accuracy.toFixed(3)}</span><span class="m">${r.iterations} it${r.poison ? " · poison " + esc(r.poison.site) : ""}${r.synthetic ? " · dry" : ""}${r.stop ? " · " + esc(r.stop) : ""}</span></div>`).join("") || `<div class="sys">no runs yet</div>`;
-    [...$("runs").children].forEach(el => el.onclick = async () => { const data = await (await fetch(`/api/runs/${el.dataset.n}`)).json(); startReplay(el.dataset.n, data.rows); });
-  }
-  const markRun = name => [...$("runs").children].forEach(el => el.classList.toggle("sel", el.dataset && el.dataset.n === name));
-
-  // cockpit
+  async function loadRuns() { const runs = await (await fetch("/api/runs")).json(); $("runs").innerHTML = runs.map(r => `<div class="run${r.name === S.run ? " sel" : ""}" data-n="${esc(r.name)}"><span class="n">${esc(r.name)}</span><span class="a${r.final_accuracy >= (r.target || 0.85) ? " hit" : ""}">${pct(r.final_accuracy)}</span><span class="m">${r.iterations} rounds${r.poison ? " · poison " + esc(r.poison.site) : ""}${r.synthetic ? " · dry" : ""}${r.stop ? " · " + esc(r.stop) : ""}</span></div>`).join("") || `<div class="sys">no runs yet</div>`; [...$("runs").children].forEach(e => e.onclick = async () => { const data = await (await fetch(`/api/runs/${e.dataset.n}`)).json(); startReplay(e.dataset.n, data.rows); }); }
+  const markRun = name => [...$("runs").children].forEach(e => e.classList.toggle("sel", e.dataset && e.dataset.n === name));
   ["hungary", "va", "cleveland"].forEach(s => { const l = document.createElement("label"); l.innerHTML = `<input type="checkbox" value="${s}"> ${s}`; $("cFreeze").appendChild(l); });
   async function loadControls() { const c = await (await fetch("/api/controls")).json(); $("cTarget").value = c.target_accuracy ?? ""; [...$("cFreeze").querySelectorAll("input")].forEach(i => i.checked = (c.frozen_sites || []).includes(i.value)); $("cState").textContent = Object.keys(c).length ? `active: ${JSON.stringify(c)}` : "no overrides"; }
-  $("cApply").onclick = async () => { const body = { target_accuracy: $("cTarget").value ? +$("cTarget").value : null, frozen_sites: [...$("cFreeze").querySelectorAll("input:checked")].map(i => i.value) }; await fetch("/api/controls", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); loadControls(); toast("applied — read by the loop at its next iteration"); };
+  $("cApply").onclick = async () => { const body = { target_accuracy: $("cTarget").value ? +$("cTarget").value : null, frozen_sites: [...$("cFreeze").querySelectorAll("input:checked")].map(i => i.value) }; await fetch("/api/controls", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); loadControls(); toast("applied — the loop reads it at its next round"); };
   $("cClear").onclick = async () => { await fetch("/api/controls", { method: "DELETE" }); loadControls(); };
 
-  // ------------------------------------------------------------ replay (synthesised phase events from a recorded run)
+  // ------------------------------------------------------------ replay
   let replay = null;
   const stopReplay = () => { if (replay) { clearTimeout(replay.tm); replay = null; } };
   function buildSteps(name, rows) {
-    const first = rows[0], steps = [[0, { type: "run_start", run_name: name, target: first.target ?? 0.85, poison: first.poison, dry_run: first.synthetic, tracing: "replay", initial_site: first.sites[0], max_iterations: rows.length }]];
-    rows.forEach(r => {
-      steps.push([0.8, { type: "phase", phase: "train", iteration: r.iteration, sites: r.sites, model_family: r.model, feature_ops: r.feature_ops }]);
-      steps.push([0.9, { type: "phase", phase: "evaluate", iteration: r.iteration }]);
-      steps.push([1.0, { type: "phase", phase: "diagnose", iteration: r.iteration, accuracy: r.accuracy }]);
-      steps.push([1.8, { type: "phase", phase: "act", iteration: r.iteration, diagnosis: r.diagnosis }]);
-      steps.push([1.3, { type: "iteration", row: r }]);
-    });
+    const first = rows[0], steps = [[0.2, { type: "run_start", run_name: name, target: first.target ?? 0.85, poison: first.poison, dry_run: first.synthetic, tracing: "replay", initial_site: first.sites[0], max_iterations: rows.length }]];
+    rows.forEach(r => { steps.push([1.6, { type: "phase", phase: "train", iteration: r.iteration, sites: r.sites, model_family: r.model, feature_ops: r.feature_ops }]); steps.push([1.4, { type: "phase", phase: "evaluate", iteration: r.iteration }]); steps.push([2.6, { type: "phase", phase: "diagnose", iteration: r.iteration, accuracy: r.accuracy }]); steps.push([2.6, { type: "phase", phase: "act", iteration: r.iteration, diagnosis: r.diagnosis }]); steps.push([2.8, { type: "iteration", row: r }]); });
     const l = rows[rows.length - 1]; steps.push([0.6, { type: "run_end", run_name: name, accuracy: l.accuracy, iterations: rows.length, stop: l.stop || "max_iterations" }]);
     return steps;
   }
-  function startReplay(name, rows) {
-    stopReplay(); S.mode = "replay"; $("replayBar").hidden = false;
-    replay = { name, rows, steps: buildSteps(name, rows), i: 0, playing: true, tm: null };
-    $("rPlay").textContent = "pause"; tick();
-  }
-  function tick() {
-    if (!replay || !replay.playing) return;
-    if (replay.i >= replay.steps.length) { replay.playing = false; $("rPlay").textContent = "replay"; return; }
-    const [delay, ev] = replay.steps[replay.i++]; onEvent(ev);
-    $("rPos").textContent = `${Math.max(0, S.iteration) + 1} / ${replay.rows.length}`;
-    replay.tm = setTimeout(tick, delay * 1000);
-  }
+  function startReplay(name, rows) { stopReplay(); S.mode = "replay"; $("replayBar").hidden = false; replay = { name, rows, steps: buildSteps(name, rows), i: 0, playing: true, tm: null }; $("rPlay").textContent = "pause"; tick(); }
+  function tick() { if (!replay || !replay.playing) return; if (replay.i >= replay.steps.length) { replay.playing = false; $("rPlay").textContent = "replay"; return; } const [delay, ev] = replay.steps[replay.i++]; onEvent(ev); $("rPos").textContent = `${Math.max(0, S.iteration) + 1} / ${replay.rows.length}`; replay.tm = setTimeout(tick, delay * 1000); }
   $("rPlay").onclick = () => { if (!replay) return; if (replay.i >= replay.steps.length) return startReplay(replay.name, replay.rows); replay.playing = !replay.playing; $("rPlay").textContent = replay.playing ? "pause" : "play"; if (replay.playing) tick(); else clearTimeout(replay.tm); };
-  const jumpTo = iter => { if (!replay) return; clearTimeout(replay.tm); const idx = replay.steps.findIndex(([, e]) => e.type === "iteration" && e.row.iteration === iter); if (idx < 0) return; feed.innerHTML = ""; S.rows = []; replay.steps.slice(0, idx + 1).forEach(([, e]) => onEvent(e)); replay.i = idx + 1; replay.playing = false; $("rPlay").textContent = "play"; $("rPos").textContent = `${iter + 1} / ${replay.rows.length}`; };
+  const jumpTo = iter => { if (!replay) return; clearTimeout(replay.tm); const idx = replay.steps.findIndex(([, e]) => e.type === "iteration" && e.row.iteration === iter); if (idx < 0) return; feed.innerHTML = ""; S.rows = []; S.badSites = new Set(); replay.steps.slice(0, idx + 1).forEach(([, e]) => onEvent(e)); replay.i = idx + 1; replay.playing = false; $("rPlay").textContent = "play"; $("rPos").textContent = `${iter + 1} / ${replay.rows.length}`; };
   $("rNext").onclick = () => jumpTo(Math.min(replay ? replay.rows.length - 1 : 0, S.iteration + 1));
   $("rPrev").onclick = () => jumpTo(Math.max(0, S.iteration - 1));
 
   // ------------------------------------------------------------ boot
+  drawHospitals(["switzerland"], null); drawScore(null, null); drawOptions(null, null, false); drawPlates(0); setNodes(-1);
   fetch("/api/source").then(r => r.json()).then(src => { S.source = src; renderCode(); }).catch(() => { $("src").textContent = "source unavailable"; });
-  fetch("/api/status").then(r => r.json()).then(info => { setStatus(info.running, info.run_name, info); S.target = info.target; $("iters").value = info.max_iterations; renderChart(); }).catch(() => { $("status").textContent = "backend unreachable — run: python -m agentforge.server"; });
+  fetch("/api/status").then(r => r.json()).then(info => { setStatus(info.running, info.run_name, info); S.target = info.target; $("iters").value = info.max_iterations; drawScore(null, null); renderChart(); }).catch(() => { $("status").textContent = "backend unreachable — run: python -m agentforge.server"; });
   loadRuns(); loadControls(); connect(); renderChart();
 })();
 </script>
