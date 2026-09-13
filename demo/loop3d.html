@@ -1,141 +1,135 @@
 <title>AgentForge Loop Theatre</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap">
 <style>
-  /* Single deliberate theme: this is a projection screen for a 3-minute demo. */
+  /* Gumroad-style dark: pure black ground, flat candy colors, 1px borders, hard offset shadows. */
   :root {
-    --ground: #0a1418;
-    --panel: #10222a;
-    --panel-2: #142b34;
-    --line: #1f3d47;
-    --ink: #e4eef0;
-    --ink-dim: #8fa8ae;
-    --ink-faint: #5b737a;
-    --pulse: #f2b441;      /* the signal travelling the loop */
-    --mint: #5ee1c1;       /* accuracy, healthy */
-    --lilac: #b9a6ff;      /* hospital data */
-    --warn: #ff6b6b;       /* poison / drop */
-    --display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
-    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --ground: #000000;
+    --panel: #0f0f0f;
+    --panel-2: #1a1a1a;
+    --line: #ffffff;
+    --line-soft: #3a3a3a;
+    --ink: #ffffff;
+    --ink-dim: #b3b3b3;
+    --ink-faint: #6f6f6f;
+    --pink: #ff90e8;     /* the signal travelling the loop */
+    --yellow: #ffc900;   /* accuracy · target */
+    --green: #23a094;    /* good */
+    --blue: #90a8ed;     /* Weave memory */
+    --orange: #ff7051;   /* poison · drop */
+    --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --shadow: 4px 4px 0 var(--pink);
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
-  body {
-    margin: 0; background: var(--ground); color: var(--ink);
-    font-family: var(--display); font-size: 14px; line-height: 1.45;
-    overflow: hidden;
-  }
-  .app { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; min-height: 560px; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--display); font-size: 14px; line-height: 1.4; overflow: hidden; }
+  .app { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; min-height: 600px; }
 
   /* ---------- header ---------- */
-  .brand {
-    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
-    padding: 10px 20px; border-bottom: 1px solid var(--line); background: var(--panel);
-  }
-  .brand h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: .01em; }
-  .brand h1 small { color: var(--ink-dim); font-weight: 400; margin-left: 8px; }
-  .chip {
-    font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
-    padding: 3px 8px; border-radius: 3px; border: 1px solid var(--line); color: var(--ink-dim);
-  }
-  .chip.poison { border-color: var(--warn); color: var(--warn); }
-  .chip.live { border-color: var(--mint); color: var(--mint); }
+  .brand { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--ground); }
+  .brand h1 { margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -.02em; text-transform: uppercase; }
+  .brand h1 small { font-weight: 700; color: var(--pink); margin-left: 10px; font-size: 13px; letter-spacing: .02em; }
+  .chip { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 5px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--ground); color: var(--ink); box-shadow: 3px 3px 0 var(--line-soft); }
+  .chip.poison { border-color: var(--orange); color: var(--ink); background: #2a1410; box-shadow: 3px 3px 0 var(--orange); }
   .brand .spacer { flex: 1; }
-  .legend { display: flex; gap: 14px; font-family: var(--mono); font-size: 11px; color: var(--ink-dim); flex-wrap: wrap; }
-  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .legend { display: flex; gap: 8px; flex-wrap: wrap; }
+  .legend span { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 4px 9px; border: 1px solid var(--line); border-radius: 4px; color: #000; }
 
   /* ---------- main ---------- */
-  main { display: grid; grid-template-columns: 1fr 380px; min-height: 0; }
-  #stage { position: relative; min-height: 0; }
+  main { display: grid; grid-template-columns: 1fr 400px; min-height: 0; }
+  #stage { position: relative; min-height: 0; background: var(--ground); }
   #stage canvas { display: block; width: 100%; height: 100%; }
-  .phase {
-    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 6px; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-  }
-  .phase span { padding: 5px 12px; border-radius: 3px; color: var(--ink-faint); border: 1px solid transparent; transition: all .25s; }
-  .phase span.on { color: var(--pulse); border-color: var(--pulse); background: rgba(242,180,65,.08); }
-  .phase span.done { color: var(--ink-dim); }
-  .banner {
-    position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
-    font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
-    padding: 8px 14px; border-radius: 4px; background: rgba(16,34,42,.85); border: 1px solid var(--line); color: var(--ink-dim);
-    opacity: 0; transition: opacity .3s; pointer-events: none; max-width: 90%; text-align: center;
-  }
-  .banner.show { opacity: 1; }
-  .banner.good { color: var(--mint); border-color: var(--mint); }
-  .banner.bad { color: var(--warn); border-color: var(--warn); }
-  .hint { position: absolute; left: 14px; bottom: 14px; font-family: var(--mono); font-size: 10px; color: var(--ink-faint); letter-spacing: .06em; }
+  .phase { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+  .phase span { font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 7px 14px; border: 1px solid var(--line-soft); border-radius: 4px; color: var(--ink-faint); background: var(--ground); transition: all .2s; }
+  .phase span.done { color: var(--ink-dim); border-color: var(--ink-faint); }
+  .phase span.on { color: #000; background: var(--pink); border-color: var(--line); box-shadow: 4px 4px 0 var(--line); transform: translateY(-2px); }
+
+  /* call cards: every @weave.op firing, Gumroad card style */
+  .calls { position: absolute; left: 16px; top: 16px; display: grid; gap: 10px; width: min(340px, 42%); pointer-events: none; }
+  .call { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); padding: 10px 12px; font-family: var(--mono); font-size: 11.5px; color: var(--ink); box-shadow: var(--shadow); transform: translateX(-16px); opacity: 0; transition: transform .35s cubic-bezier(.2,.9,.2,1.2), opacity .3s, box-shadow .3s; }
+  .call.in { transform: none; opacity: 1; }
+  .call.old { opacity: .55; box-shadow: 3px 3px 0 var(--line-soft); }
+  .call .deco { color: var(--pink); font-weight: 700; }
+  .call .fn { font-weight: 700; }
+  .call .arg { color: var(--ink-dim); }
+  .call .ret { display: block; margin-top: 4px; color: var(--green); }
+  .call .ret.wait { color: var(--ink-faint); }
+  .call .ret .cur { display: inline-block; width: 7px; height: 12px; background: var(--pink); vertical-align: -2px; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .banner { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(6px); font-family: var(--mono); font-size: 13px; font-weight: 700; padding: 10px 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); box-shadow: var(--shadow); opacity: 0; transition: all .3s; pointer-events: none; max-width: 90%; text-align: center; }
+  .banner.show { opacity: 1; transform: translateX(-50%); }
+  .banner.good { background: var(--green); color: #000; box-shadow: 4px 4px 0 var(--line); }
+  .banner.bad { background: var(--orange); color: #000; box-shadow: 4px 4px 0 var(--line); }
+  .hint { position: absolute; right: 16px; bottom: 16px; font-family: var(--mono); font-size: 10px; color: var(--ink-faint); }
 
   /* ---------- monitor rail ---------- */
-  .monitor {
-    border-left: 1px solid var(--line); background: var(--panel); overflow-y: auto; min-height: 0;
-    display: flex; flex-direction: column;
-  }
-  .monitor section { padding: 14px 18px; border-bottom: 1px solid var(--line); }
-  .eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 8px; }
+  .monitor { border-left: 1px solid var(--line); background: var(--ground); overflow-y: auto; min-height: 0; padding: 14px; display: grid; gap: 12px; align-content: start; }
+  .card { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); padding: 14px 16px; box-shadow: 4px 4px 0 var(--line-soft); }
+  .card.hot { box-shadow: var(--shadow); }
+  .eyebrow { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-dim); margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+  .eyebrow i { width: 10px; height: 10px; border: 1px solid var(--line); border-radius: 2px; display: inline-block; }
   .vitals { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 8px; }
-  .acc { font-family: var(--mono); font-size: 52px; font-weight: 500; line-height: 1; color: var(--mint); font-variant-numeric: tabular-nums; transition: color .3s; }
-  .acc.under { color: var(--ink); }
-  .acc small { font-size: 14px; color: var(--ink-dim); margin-left: 6px; }
-  .delta { font-family: var(--mono); font-size: 16px; font-variant-numeric: tabular-nums; color: var(--ink-dim); }
-  .delta.up { color: var(--mint); } .delta.down { color: var(--warn); }
-  .sub { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 14px; margin-top: 10px; font-family: var(--mono); font-size: 11px; color: var(--ink-dim); }
-  .sub b { color: var(--ink); font-weight: 500; }
-  .track { position: relative; height: 6px; background: var(--panel-2); border-radius: 3px; margin-top: 10px; }
-  .track .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--mint); border-radius: 3px; transition: width .6s cubic-bezier(.2,.8,.2,1); }
-  .track .tgt { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--pulse); }
-  .track .base { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--ink-faint); }
-  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-  .tag { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; padding: 2px 7px; border-radius: 3px; background: var(--panel-2); color: var(--ink-dim); }
-  .reasoning { font-size: 13px; color: var(--ink); max-width: 62ch; margin: 0; min-height: 3.6em; }
+  .acc { font-family: var(--display); font-size: 60px; font-weight: 900; line-height: .95; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .acc.hit { color: var(--yellow); }
+  .acc small { display: block; font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--ink-dim); letter-spacing: .06em; margin-top: 6px; }
+  .delta { font-family: var(--mono); font-size: 13px; font-weight: 700; padding: 5px 9px; border: 1px solid var(--line-soft); border-radius: 4px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+  .delta.up { background: var(--green); color: #000; border-color: var(--line); } .delta.down { background: var(--orange); color: #000; border-color: var(--line); }
+  .sub { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px 14px; margin-top: 12px; font-family: var(--mono); font-size: 11px; color: var(--ink-dim); }
+  .sub b { color: var(--ink); font-weight: 700; }
+  .track { position: relative; height: 12px; border: 1px solid var(--line); border-radius: 4px; margin-top: 12px; background: var(--panel-2); overflow: visible; }
+  .track .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--yellow); border-radius: 3px; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+  .track .tgt { position: absolute; top: -5px; bottom: -5px; width: 3px; background: var(--pink); border: 1px solid #000; }
+  .track .base { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink-faint); }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .tag { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 3px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--blue); color: #000; }
+  .reasoning { font-size: 13px; color: var(--ink); max-width: 60ch; margin: 0; min-height: 3.6em; }
   .reasoning.dim { color: var(--ink-faint); }
-  .src { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-top: 6px; }
-  .src b { color: var(--lilac); font-weight: 500; }
-  .action { font-family: var(--mono); font-size: 13px; color: var(--pulse); word-break: break-word; margin: 0 0 8px; }
-  .bars { display: grid; gap: 5px; }
-  .bar { display: grid; grid-template-columns: 128px 1fr 38px; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--ink-dim); }
-  .bar .b { height: 8px; background: var(--panel-2); border-radius: 2px; overflow: hidden; }
-  .bar .b i { display: block; height: 100%; width: 0; background: var(--lilac); transition: width .5s ease; }
-  .bar.top { color: var(--ink); } .bar.top .b i { background: var(--pulse); }
+  .src { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-top: 8px; }
+  .src b { color: var(--blue); font-weight: 700; }
+  .action { font-family: var(--mono); font-size: 13px; font-weight: 700; color: #000; background: var(--pink); border: 1px solid var(--line); border-radius: 4px; padding: 6px 9px; display: inline-block; word-break: break-word; margin: 0 0 10px; box-shadow: 3px 3px 0 var(--line); }
+  .action.none { background: var(--panel-2); color: var(--ink-dim); box-shadow: none; }
+  .bars { display: grid; gap: 6px; }
+  .bar { display: grid; grid-template-columns: 132px 1fr 40px; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--ink-dim); }
+  .bar .b { height: 12px; border: 1px solid var(--line-soft); border-radius: 3px; overflow: hidden; background: var(--panel-2); }
+  .bar .b i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .5s ease; }
+  .bar.top { color: var(--ink); font-weight: 700; } .bar.top .b { border-color: var(--line); } .bar.top .b i { background: var(--pink); }
   .bar em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
-  .gate { margin-top: 10px; padding: 8px 10px; border-radius: 4px; border: 1px dashed var(--line); font-size: 12px; color: var(--ink-dim); }
-  .gate.on { border-color: var(--pulse); color: var(--ink); }
-  .gate .k { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--pulse); }
-  .cost { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-top: 8px; }
-  .ledger { font-family: var(--mono); font-size: 11px; display: grid; gap: 3px; }
-  .ledger div { display: grid; grid-template-columns: 22px 1fr 52px; gap: 8px; color: var(--ink-dim); }
-  .ledger div span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
-  .ledger .up span:last-child { color: var(--mint); } .ledger .down span:last-child { color: var(--warn); }
+  .gate { margin-top: 12px; padding: 9px 11px; border: 1px dashed var(--line-soft); border-radius: 6px; font-size: 12px; color: var(--ink-dim); }
+  .gate.on { border: 1px solid var(--line); background: var(--yellow); color: #000; box-shadow: 3px 3px 0 var(--line); }
+  .gate .k { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; display: block; margin-bottom: 3px; }
+  .cost { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-top: 10px; }
+  .ledger { font-family: var(--mono); font-size: 11px; display: grid; gap: 4px; }
+  .ledger div { display: grid; grid-template-columns: 22px 1fr 56px; gap: 8px; color: var(--ink-dim); padding: 3px 0; border-bottom: 1px solid var(--panel-2); }
+  .ledger div span:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .ledger .up span:last-child { color: var(--green); } .ledger .down span:last-child { color: var(--orange); }
   .ledger .now { color: var(--ink); }
 
   /* ---------- transport ---------- */
-  .transport {
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    padding: 10px 20px; border-top: 1px solid var(--line); background: var(--panel);
-  }
-  button {
-    font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--ink);
-    background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 7px 12px; cursor: pointer;
-  }
-  button:hover { border-color: var(--ink-dim); }
-  button:focus-visible { outline: 2px solid var(--pulse); outline-offset: 2px; }
-  button.primary { background: var(--pulse); color: #1a1406; border-color: var(--pulse); font-weight: 600; min-width: 84px; }
-  .scrub { flex: 1; min-width: 160px; display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 11px; color: var(--ink-dim); }
-  input[type=range] { flex: 1; accent-color: var(--pulse); }
-  select { font-family: var(--mono); font-size: 12px; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; }
-  .drop { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); border: 1px dashed var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
-  .drop:hover, .drop.over { border-color: var(--lilac); color: var(--lilac); }
+  .transport { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 20px; border-top: 1px solid var(--line); background: var(--ground); }
+  button { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 8px 14px; cursor: pointer; box-shadow: 3px 3px 0 var(--line-soft); transition: transform .08s, box-shadow .08s; }
+  button:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--line-soft); }
+  button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--line-soft); }
+  button:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+  button.primary { background: var(--pink); color: #000; box-shadow: 3px 3px 0 var(--line); min-width: 96px; }
+  .scrub { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--ink-dim); }
+  input[type=range] { flex: 1; accent-color: var(--pink); }
+  select { font-family: var(--mono); font-size: 12px; font-weight: 700; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 7px 8px; }
+  .drop { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--ink-dim); border: 1px dashed var(--ink-faint); border-radius: 4px; padding: 8px 12px; cursor: pointer; }
+  .drop:hover, .drop.over { border-style: solid; border-color: var(--blue); color: var(--blue); }
   .drop input { display: none; }
 
-  @media (max-width: 900px) {
+  @media (max-width: 960px) {
     body { overflow: auto; }
     .app { height: auto; min-height: 100vh; }
     main { grid-template-columns: 1fr; }
-    #stage { height: 58vh; min-height: 360px; }
+    #stage { height: 60vh; min-height: 380px; }
     .monitor { border-left: 0; border-top: 1px solid var(--line); }
-    .acc { font-size: 40px; }
+    .acc { font-size: 46px; }
+    .calls { width: 56%; }
   }
-  @media (prefers-reduced-motion: reduce) { .track .fill, .bar .b i { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .track .fill, .bar .b i, .call, .banner { transition: none; } .call .ret .cur { animation: none; } }
 </style>
 
 <div class="app">
@@ -145,26 +139,28 @@
     <span class="chip poison" id="poisonChip" hidden>adversarial reveal</span>
     <span class="spacer"></span>
     <div class="legend">
-      <span><i style="background:var(--pulse)"></i>signal</span>
-      <span><i style="background:var(--lilac)"></i>hospital data</span>
-      <span><i style="background:var(--mint)"></i>accuracy · target ring</span>
-      <span><i style="background:#3fb7d9"></i>Weave memory</span>
+      <span style="background:var(--pink)">signal</span>
+      <span style="background:var(--blue)">hospital data</span>
+      <span style="background:var(--yellow)">accuracy · target</span>
+      <span style="background:var(--green)">Weave memory</span>
+      <span style="background:var(--orange)">poison</span>
     </div>
   </header>
 
   <main>
     <div id="stage">
+      <div class="calls" id="calls"></div>
       <div class="phase" id="phase"><span>train</span><span>evaluate</span><span>diagnose</span><span>act</span></div>
       <div class="banner" id="banner"></div>
-      <div class="hint">drag to orbit · space play/pause · ←/→ step</div>
+      <div class="hint">drag · wheel · space · ←/→</div>
     </div>
 
     <aside class="monitor">
-      <section>
-        <p class="eyebrow" id="iterLabel">iteration —</p>
+      <section class="card" id="cardVitals">
+        <p class="eyebrow" id="iterLabel"><i style="background:var(--yellow)"></i>iteration —</p>
         <div class="vitals">
-          <div class="acc under" id="acc">—<small>held-out</small></div>
-          <div class="delta" id="delta"></div>
+          <div class="acc" id="acc">—<small>held-out accuracy</small></div>
+          <div class="delta" id="delta">—</div>
         </div>
         <div class="track"><div class="fill" id="fill" style="width:0%"></div><div class="base" id="baseMark"></div><div class="tgt" id="tgtMark"></div></div>
         <div class="sub">
@@ -176,23 +172,23 @@
         </div>
       </section>
 
-      <section>
-        <p class="eyebrow">diagnose · W&amp;B Inference reads its own Weave traces</p>
+      <section class="card" id="cardDiag">
+        <p class="eyebrow"><i style="background:var(--green)"></i>diagnose() · reads its own Weave traces</p>
         <div class="tags" id="tags"></div>
         <p class="reasoning dim" id="reasoning">Waiting for the first evaluation…</p>
         <div class="src" id="src"></div>
       </section>
 
-      <section>
-        <p class="eyebrow">decide · TypeSafe Jev picks one typed action</p>
-        <p class="action" id="action">—</p>
+      <section class="card" id="cardAct">
+        <p class="eyebrow"><i style="background:var(--pink)"></i>decide_action() · TypeSafe Jev, one typed action</p>
+        <p class="action none" id="action">—</p>
         <div class="bars" id="bars"></div>
         <div class="gate" id="gate">Confidence gate: Jev below 0.40 → second opinion from the reasoning model.</div>
         <div class="cost" id="cost"></div>
       </section>
 
-      <section>
-        <p class="eyebrow">effect ledger · same held-out split every round</p>
+      <section class="card">
+        <p class="eyebrow"><i style="background:var(--blue)"></i>effect ledger · same held-out split every round</p>
         <div class="ledger" id="ledger"></div>
       </section>
     </aside>
@@ -209,7 +205,7 @@
   </footer>
 </div>
 
-<script id="run-data" type="application/json">/*RUN_DATA_START*/{"name": "poison_va \u00b7 live run, VA 40% label noise", "rows": [{"iteration": 0, "accuracy": 0.5513513513513514, "balanced_accuracy": 0.5, "train_accuracy": 0.9387755102040817, "gap": 0.3874241588527303, "n_train": 98, "model": "knn", "sites": ["switzerland"], "feature_ops": [], "target": 0.85, "action": "acquire_data({'site': 'cleveland'})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["class_imbalance", "overfitting", "data_starved"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.356, "input_tokens": 2150, "output_tokens": 222, "usd": null}, "jev_confidence": 0.82, "jev_probabilities": {"acquire_data": 0.86, "switch_model": 0.13, "tune_hyperparams": 0.01, "request_code_fix": 0.0, "transform_features": 0.0}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model predicts only the positive class (confusion [[0,83],[0,102]]), giving recall 0 for the negative class and perfect recall for the positive class. This stems from extreme class imbalance in the training set (train_pos_frac\u202f=\u202f0.939) combined with a very small training set (n_train\u202f=\u202f98). The huge train\u2011test accuracy gap (0.9388\u202f\u2013\u202f0.5514\u202f=\u202f0.387) shows the model overfits to the majority class and cannot generalize to the minority. Earlier runs with more data (n_train\u202f=\u202f575) and a balanced class_weight (trace 01a09bc5-b948) achieved high accuracy (0.849) and a near\u2011zero gap, indicating that the imbalance handling was effective when enough data were present. The current run lacks that mitigation and is also data\u2011starved, so the model collapses to a trivial majority\u2011class predictor.", "cited": ["01a09bc5-b948", "01a09bc4-0227"], "diagnosis_provider": "wandb_inference"}, {"iteration": 1, "accuracy": 0.7243243243243244, "balanced_accuracy": 0.7174580675643751, "train_accuracy": 0.8088235294117647, "gap": 0.08449920508744035, "n_train": 340, "model": "knn", "sites": ["switzerland", "cleveland"], "feature_ops": [], "target": 0.85, "action": "acquire_data({'site': 'va'})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["underfitting", "data_starved", "class_imbalance"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.254, "input_tokens": 2220, "output_tokens": 212, "usd": null}, "jev_confidence": 0.85, "jev_probabilities": {"acquire_data": 0.88, "switch_model": 0.12, "tune_hyperparams": 0.0, "request_code_fix": 0.0, "transform_features": 0.0}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model\u2019s accuracy (0.724) is well below the peak 0.849 achieved earlier with logistic regression on a larger training set (n_train=575, trace 01a09bc5-647c). The learning curve shows performance rising as data increase (0.7135\u21920.7243 from 170\u2192340 samples) but still far from the plateau seen at 575\u2013735 samples (0.843\u20130.849, trace 01a09bc6-7573). The current train\u2011test gap (0.084) is modest, indicating the issue is not severe overfitting but rather underfitting caused by insufficient data (data_starved) and a modest class imbalance (train_pos_frac\u202f=\u202f0.597, test_pos_frac\u202f=\u202f0.551) that depresses recall for the negative class (0.651). Earlier attempts to tune depth, learning rate, or class_weight did not help when data were scarce, confirming that the bottleneck is the limited sample size rather than hyper\u2011parameters or feature scaling. Therefore the primary reason for underperformance is underfitting due to data starvation, compounded by residual class imbalance.", "cited": ["01a09bc5-647c", "01a09bc5-0ed8", "01a09bc6-7573", "01a09bc4-0227"], "diagnosis_provider": "wandb_inference"}, {"iteration": 2, "accuracy": 0.6864864864864865, "balanced_accuracy": 0.6853886132766359, "train_accuracy": 0.762, "gap": 0.07551351351351354, "n_train": 500, "model": "knn", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "switch_model({'family': 'random_forest'})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["plateau", "overfitting"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.276, "input_tokens": 2202, "output_tokens": 205, "usd": null}, "jev_confidence": 0.53, "jev_probabilities": {"switch_model": 0.62, "transform_features": 0.2, "tune_hyperparams": 0.17, "acquire_data": 0.01, "request_code_fix": 0.0}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model\u2019s test accuracy (0.686) is well below the earlier peak (0.849) achieved after logistic\u2011regression tuning on 575 samples. Adding the VA site data caused a performance drop (0.724 \u2192 0.686, see trace 01a09bc9-28d7-7e6a-8803-a3c72f88010f), indicating a distribution shift that the current model cannot handle. The learning curve peaks at 375 samples (0.7189) then falls at 500 samples (0.6865), showing a plateau and even degradation as more heterogeneous data are added. The train\u2011test gap (0.075) and higher train accuracy (0.762) suggest mild over\u2011fitting to the original sites, while the added site introduces heterogeneity that the model\u2019s capacity or regularisation does not accommodate. Thus the primary issue is a plateau caused by multi\u2011site data heterogeneity and slight over\u2011fitting to the original distribution.", "cited": ["01a09bc9-28d7-7e6a-8803-a3c72f88010f", "01a09bc6-7573-788b-adc4-0ce5d79dec64"], "diagnosis_provider": "wandb_inference"}, {"iteration": 3, "accuracy": 0.8054054054054054, "balanced_accuracy": 0.7965981573352232, "train_accuracy": 1.0, "gap": 0.1945945945945946, "n_train": 500, "model": "random_forest", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "tune_hyperparams({'params': {'max_depth': 4, 'min_samples_leaf': 5}})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["overfitting", "data_starved", "class_imbalance"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.343, "input_tokens": 2369, "output_tokens": 214, "usd": null}, "jev_confidence": 0.46, "jev_probabilities": {"tune_hyperparams": 0.57, "acquire_data": 0.4, "switch_model": 0.03, "request_code_fix": 0.0, "transform_features": 0.0}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model is severely overfitting: train accuracy is perfect (1.0) while test accuracy is only 0.805, yielding a large train\u2011test gap of 0.195. The learning curve shows performance degrading as more data is added (0.8486 \u2192 0.8216 \u2192 0.8054), indicating the model\u2019s capacity exceeds what the 500\u2011sample training set can support. Attempts to mitigate this\u2014standardizing features, balancing class weights, and switching to simpler linear models\u2014did not close the gap (e.g., logistic regression still had a gap of ~0.005, class_weight balanced gave the same gap). The random forest that now gives the best test score still overfits (train 1.0). Additionally, recall for the negative class is low (0.711 vs 0.882 for the positive class), reflecting residual class\u2011imbalance effects that the earlier class_weight tweak failed to resolve. Thus the primary issues are overfitting due to a model that is too complex for the limited data (data\u2011starved) and lingering class\u2011imbalance impact on the minority class.", "cited": ["01a09bc5-6469-7c29-8565-eadac26f0bec", "01a09bc5-b948-72fc-82c7-b5636131bcf2", "01a09bc6-2872-7898-ab32-c332386c3509", "01a09bc9-5123-7ff2-8f74-6c899d8a3fd3"], "diagnosis_provider": "wandb_inference"}, {"iteration": 4, "accuracy": 0.8162162162162162, "balanced_accuracy": 0.7974249940940231, "train_accuracy": 0.796, "gap": -0.020216216216216165, "n_train": 500, "model": "random_forest", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "tune_hyperparams({'params': {'n_estimators': 500, 'max_depth': 12}})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["underfitting", "class_imbalance", "plateau"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.285, "input_tokens": 2455, "output_tokens": 207, "usd": null}, "jev_confidence": 0.81, "jev_probabilities": {"tune_hyperparams": 0.86, "switch_model": 0.14, "request_code_fix": 0.0, "transform_features": 0.0, "acquire_data": 0.0}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model\u2019s performance is plateauing around 0.81 despite adding more data (learning curve drops from 0.854 at 250 samples to 0.816 at 500). Train accuracy (0.796) is slightly lower than test accuracy (0.816), giving a negative train\u2011test gap (\u20110.020), which signals underfitting rather than overfitting. The random\u2011forest was constrained to max_depth=4 and min_samples_leaf=5 (trace 01a09bc9-851c-799c-a588-f11d3da5f768), limiting its capacity; this explains why accuracy degrades as the dataset grows. Additionally, per\u2011class recall is highly imbalanced (0.614 for the negative class vs 0.98 for the positive class), indicating the model is biased toward the majority/positive class despite only modest class imbalance (train_pos_frac\u22480.59). Earlier attempts with logistic regression (trace 01a09bc5-647c-7d1f-8e48-53c9db097024) achieved higher accuracy (0.849) with a near\u2011zero gap, suggesting the current tree depth is too restrictive. Therefore the primary issues are underfitting due to overly limited model capacity and residual class\u2011imbalance bias.", "cited": ["01a09bc9-851c-799c-a588-f11d3da5f768", "01a09bc5-647c-7d1f-8e48-53c9db097024"], "diagnosis_provider": "wandb_inference"}, {"iteration": 5, "accuracy": 0.827027027027027, "balanced_accuracy": 0.8128395936687928, "train_accuracy": 0.868, "gap": 0.040972972972972976, "n_train": 500, "model": "random_forest", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "tune_hyperparams({'params': {'class_weight': 'balanced'}})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["overfitting", "data_starved", "class_imbalance", "plateau"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 2.301, "input_tokens": 2590, "output_tokens": 200, "usd": null}, "jev_confidence": 0.73, "jev_probabilities": {"tune_hyperparams": 0.79, "switch_model": 0.11, "acquire_data": 0.08, "transform_features": 0.01, "request_code_fix": 0.01}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model\u2019s test accuracy (0.827) is only 0.041 lower than train accuracy (0.868), indicating a modest over\u2011fit. The learning curve shows a plateau at 250\u2011375 samples (0.843) then a drop at 500 samples (0.827), a classic sign that adding more data does not improve generalisation and the model is beginning to over\u2011fit to the limited 500\u2011sample training set (data_starved). Moreover, per\u2011class recall is highly asymmetric: recall for the negative class is 0.675 while the positive class is 0.951, and balanced accuracy (0.813) is noticeably lower than raw accuracy (0.827). This points to residual class\u2011imbalance effects despite the modest imbalance (train_pos_frac\u202f\u2248\u202f0.59). Past attempts to fix it \u2013 applying class_weight='balanced' (trace 01a09bc5-b95d-7e73-a7d0-b835ef008e16) and adding more sites (VA data, trace 01a09bc6-7573-788b-adc4-0ce5d79dec64) \u2013 did not raise performance, confirming that the issue is not simply feature scaling or data quantity. The current random\u2011forest (max_depth\u202f12) is relatively complex for only 500 examples, which together with the class\u2011imbalance explains the lingering gap and the low recall for the minority class. The diagnosis therefore combines overfitting, data starvation, and class\u2011imbalance as the primary reasons for the under\u2011performance.", "cited": ["01a09bc5-b95d-7e73-a7d0-b835ef008e16", "01a09bc9-8557-7787-9be8-a9c1ba43ec29", "01a09bc9-dd2c-76a7-add3-2430b95e6c73", "01a09bc9-dcfe-7a25-94b6-b7730f629ae0"], "diagnosis_provider": "wandb_inference"}, {"iteration": 6, "accuracy": 0.8108108108108109, "balanced_accuracy": 0.8059886605244507, "train_accuracy": 0.886, "gap": 0.07518918918918915, "n_train": 500, "model": "random_forest", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "switch_model({'family': 'logistic_regression'})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["overfitting", "data_starved", "class_imbalance"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.251, "input_tokens": 2533, "output_tokens": 163, "usd": null}, "jev_confidence": 0.74, "jev_probabilities": {"switch_model": 0.8, "transform_features": 0.11, "acquire_data": 0.07, "request_code_fix": 0.01}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model shows a classic over\u2011fitting pattern on a very small, heterogeneous dataset. Test accuracy (0.811) is 0.075 lower than train accuracy (0.886), and the learning curve peaks at 375 samples (0.854) then drops to 0.811 at 500 samples, indicating that adding more (noisy) data hurts performance. The per\u2011class recall is imbalanced (0.759 for the negative class vs 0.853 for the positive), reflecting the modest class imbalance (train pos 0.592, test pos 0.551) but not enough to explain the gap. Past actions that increased model capacity (switch to random_forest, depth 12, 500 trees) gave the best accuracy (0.827) but still left a sizable gap, and further regularisation attempts (class_weight balanced) actually reduced performance. Earlier attempts to acquire more data from other sites did not improve accuracy, suggesting the new data may be of lower quality or distribution\u2011shifted, exacerbating over\u2011fitting. Thus the primary issue is overfitting due to a high\u2011capacity model on a data\u2011starved, multi\u2011site dataset, with secondary contribution from modest class imbalance.", "cited": ["01a09bc9-8557-7787-9be8-a9c1ba43ec29", "01a09bca-243b-7cf8-a60f-41d867a5daaf", "01a09bca-2376-7065-bf47-8f8e4691313f", "01a09bc8-fd2f-7169-9150-cab1f89fb8d1"], "diagnosis_provider": "wandb_inference"}, {"iteration": 7, "accuracy": 0.8108108108108109, "balanced_accuracy": 0.8015001181195369, "train_accuracy": 0.77, "gap": -0.04081081081081084, "n_train": 500, "model": "logistic_regression", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "switch_model({'family': 'random_forest'})", "provider": "typesafe (jev-1.13.0) \u2014 low confidence 0.36 < 0.4, second opinion: accept", "evidence_tags": ["underfitting"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.356, "input_tokens": 2566, "output_tokens": 215, "usd": null}, "jev_confidence": 0.36, "jev_probabilities": {"switch_model": 0.5, "tune_hyperparams": 0.41, "transform_features": 0.08, "acquire_data": 0.01, "request_code_fix": 0.0}, "escalation": {"verdict": "accept", "critique": "The diagnosis correctly identifies underfitting and points to the higher\u2011capacity RandomForest (n_estimators=500, max_depth=12) that previously achieved 0.827 accuracy. Switching from the under\u2011performing LogisticRegression back to a RandomForest aligns with the evidence and is the most supported remedy, despite the low confidence score."}, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model is underfitting. Train accuracy (0.77) is lower than test accuracy (0.811), giving a negative train\u2011test gap of -0.0408, which signals insufficient capacity rather than over\u2011fitting. The learning curve confirms this: accuracy drops from 0.8541 at 250 samples to 0.8108 at 500 samples, showing that adding more data hurts performance because the model cannot capture the underlying patterns. The best historical result (0.827) was achieved with a higher\u2011capacity RandomForest (n_estimators=500, max_depth=12) \u2013 a modest gain over the current LogisticRegression (0.811). Subsequent attempts to balance class weights reduced performance, indicating that class imbalance is not the primary driver. Therefore, the dominant issue is underfitting due to a model that is too simple for the available features and data distribution.", "cited": ["01a09bc5-6469-7c29-8565-eadac26f0bec", "01a09bc5-647c-7d1f-8e48-53c9db097024", "01a09bc9-8557-7787-9be8-a9c1ba43ec29", "01a09bca-243b-7cf8-a60f-41d867a5daaf"], "diagnosis_provider": "wandb_inference"}, {"iteration": 8, "accuracy": 0.8054054054054054, "balanced_accuracy": 0.7965981573352232, "train_accuracy": 1.0, "gap": 0.1945945945945946, "n_train": 500, "model": "random_forest", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "switch_model({'family': 'svm'})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["overfitting", "class_imbalance"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.337, "input_tokens": 2604, "output_tokens": 161, "usd": null}, "jev_confidence": 0.58, "jev_probabilities": {"switch_model": 0.68, "transform_features": 0.27, "acquire_data": 0.03, "request_code_fix": 0.01}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model is severely overfitting: train accuracy is perfect (1.0) while test accuracy is only 0.805, giving a large train\u2011test gap of 0.1946. The learning curve drops as more data is added (0.8486 \u2192 0.8216 \u2192 0.8054), confirming that the high\u2011capacity random\u2011forest continues to memorize the training set rather than generalize. Per\u2011class recall is imbalanced (0.711 for the negative class vs 0.882 for the positive), and the confusion matrix shows many false positives (24) and false negatives (12), indicating the model is biased toward the majority class (train_pos_frac\u202f=\u202f0.592). Past interventions that increased model capacity (more trees, deeper depth) gave only marginal gains, and attempts to address class imbalance with class_weight='balanced' actually hurt performance, showing that the core issue is over\u2011parameterization relative to the modest dataset (n_train\u202f=\u202f500, n_features\u202f=\u202f13). Further data acquisition from additional sites has not improved performance, suggesting the new data may be of lower quality or distribution\u2011shifted, reinforcing the overfitting plateau. The diagnosis therefore points to overfitting as the primary cause, compounded by modest class imbalance.", "cited": ["01a09bc9-8557-7787-9be8-a9c1ba43ec29", "01a09bc9-dd2c-76a7-add3-2430b95e6c73", "01a09bca-8b88-735b-8b90-e01827f74b57", "01a09bca-e56c-7023-913d-00273a93dead"], "diagnosis_provider": "wandb_inference"}]}/*RUN_DATA_END*/</script>
+<script id="run-data" type="application/json">/*RUN_DATA_START*/{"name": "poison_va \u00b7 live run \u00b7 VA 40% label noise", "rows": [{"iteration": 0, "accuracy": 0.5513513513513514, "balanced_accuracy": 0.5, "train_accuracy": 0.9387755102040817, "gap": 0.3874241588527303, "n_train": 98, "model": "knn", "sites": ["switzerland"], "feature_ops": [], "target": 0.85, "action": "acquire_data({'site': 'cleveland'})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["class_imbalance", "overfitting", "data_starved"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.356, "input_tokens": 2150, "output_tokens": 222, "usd": null}, "jev_confidence": 0.82, "jev_probabilities": {"acquire_data": 0.86, "switch_model": 0.13, "tune_hyperparams": 0.01, "request_code_fix": 0.0, "transform_features": 0.0}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model predicts only the positive class (confusion [[0,83],[0,102]]), giving recall 0 for the negative class and perfect recall for the positive class. This stems from extreme class imbalance in the training set (train_pos_frac\u202f=\u202f0.939) combined with a very small training set (n_train\u202f=\u202f98). The huge train\u2011test accuracy gap (0.9388\u202f\u2013\u202f0.5514\u202f=\u202f0.387) shows the model overfits to the majority class and cannot generalize to the minority. Earlier runs with more data (n_train\u202f=\u202f575) and a balanced class_weight (trace 01a09bc5-b948) achieved high accuracy (0.849) and a near\u2011zero gap, indicating that the imbalance handling was effective when enough data were present. The current run lacks that mitigation and is also data\u2011starved, so the model collapses to a trivial majority\u2011class predictor.", "cited": ["01a09bc5-b948", "01a09bc4-0227"], "diagnosis_provider": "wandb_inference"}, {"iteration": 1, "accuracy": 0.7243243243243244, "balanced_accuracy": 0.7174580675643751, "train_accuracy": 0.8088235294117647, "gap": 0.08449920508744035, "n_train": 340, "model": "knn", "sites": ["switzerland", "cleveland"], "feature_ops": [], "target": 0.85, "action": "acquire_data({'site': 'va'})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["underfitting", "data_starved", "class_imbalance"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.254, "input_tokens": 2220, "output_tokens": 212, "usd": null}, "jev_confidence": 0.85, "jev_probabilities": {"acquire_data": 0.88, "switch_model": 0.12, "tune_hyperparams": 0.0, "request_code_fix": 0.0, "transform_features": 0.0}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model\u2019s accuracy (0.724) is well below the peak 0.849 achieved earlier with logistic regression on a larger training set (n_train=575, trace 01a09bc5-647c). The learning curve shows performance rising as data increase (0.7135\u21920.7243 from 170\u2192340 samples) but still far from the plateau seen at 575\u2013735 samples (0.843\u20130.849, trace 01a09bc6-7573). The current train\u2011test gap (0.084) is modest, indicating the issue is not severe overfitting but rather underfitting caused by insufficient data (data_starved) and a modest class imbalance (train_pos_frac\u202f=\u202f0.597, test_pos_frac\u202f=\u202f0.551) that depresses recall for the negative class (0.651). Earlier attempts to tune depth, learning rate, or class_weight did not help when data were scarce, confirming that the bottleneck is the limited sample size rather than hyper\u2011parameters or feature scaling. Therefore the primary reason for underperformance is underfitting due to data starvation, compounded by residual class imbalance.", "cited": ["01a09bc5-647c", "01a09bc5-0ed8", "01a09bc6-7573", "01a09bc4-0227"], "diagnosis_provider": "wandb_inference"}, {"iteration": 2, "accuracy": 0.6864864864864865, "balanced_accuracy": 0.6853886132766359, "train_accuracy": 0.762, "gap": 0.07551351351351354, "n_train": 500, "model": "knn", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "switch_model({'family': 'random_forest'})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["plateau", "overfitting"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.276, "input_tokens": 2202, "output_tokens": 205, "usd": null}, "jev_confidence": 0.53, "jev_probabilities": {"switch_model": 0.62, "transform_features": 0.2, "tune_hyperparams": 0.17, "acquire_data": 0.01, "request_code_fix": 0.0}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model\u2019s test accuracy (0.686) is well below the earlier peak (0.849) achieved after logistic\u2011regression tuning on 575 samples. Adding the VA site data caused a performance drop (0.724 \u2192 0.686, see trace 01a09bc9-28d7-7e6a-8803-a3c72f88010f), indicating a distribution shift that the current model cannot handle. The learning curve peaks at 375 samples (0.7189) then falls at 500 samples (0.6865), showing a plateau and even degradation as more heterogeneous data are added. The train\u2011test gap (0.075) and higher train accuracy (0.762) suggest mild over\u2011fitting to the original sites, while the added site introduces heterogeneity that the model\u2019s capacity or regularisation does not accommodate. Thus the primary issue is a plateau caused by multi\u2011site data heterogeneity and slight over\u2011fitting to the original distribution.", "cited": ["01a09bc9-28d7-7e6a-8803-a3c72f88010f", "01a09bc6-7573-788b-adc4-0ce5d79dec64"], "diagnosis_provider": "wandb_inference"}, {"iteration": 3, "accuracy": 0.8054054054054054, "balanced_accuracy": 0.7965981573352232, "train_accuracy": 1.0, "gap": 0.1945945945945946, "n_train": 500, "model": "random_forest", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "tune_hyperparams({'params': {'max_depth': 4, 'min_samples_leaf': 5}})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["overfitting", "data_starved", "class_imbalance"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.343, "input_tokens": 2369, "output_tokens": 214, "usd": null}, "jev_confidence": 0.46, "jev_probabilities": {"tune_hyperparams": 0.57, "acquire_data": 0.4, "switch_model": 0.03, "request_code_fix": 0.0, "transform_features": 0.0}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model is severely overfitting: train accuracy is perfect (1.0) while test accuracy is only 0.805, yielding a large train\u2011test gap of 0.195. The learning curve shows performance degrading as more data is added (0.8486 \u2192 0.8216 \u2192 0.8054), indicating the model\u2019s capacity exceeds what the 500\u2011sample training set can support. Attempts to mitigate this\u2014standardizing features, balancing class weights, and switching to simpler linear models\u2014did not close the gap (e.g., logistic regression still had a gap of ~0.005, class_weight balanced gave the same gap). The random forest that now gives the best test score still overfits (train 1.0). Additionally, recall for the negative class is low (0.711 vs 0.882 for the positive class), reflecting residual class\u2011imbalance effects that the earlier class_weight tweak failed to resolve. Thus the primary issues are overfitting due to a model that is too complex for the limited data (data\u2011starved) and lingering class\u2011imbalance impact on the minority class.", "cited": ["01a09bc5-6469-7c29-8565-eadac26f0bec", "01a09bc5-b948-72fc-82c7-b5636131bcf2", "01a09bc6-2872-7898-ab32-c332386c3509", "01a09bc9-5123-7ff2-8f74-6c899d8a3fd3"], "diagnosis_provider": "wandb_inference"}, {"iteration": 4, "accuracy": 0.8162162162162162, "balanced_accuracy": 0.7974249940940231, "train_accuracy": 0.796, "gap": -0.020216216216216165, "n_train": 500, "model": "random_forest", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "tune_hyperparams({'params': {'n_estimators': 500, 'max_depth': 12}})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["underfitting", "class_imbalance", "plateau"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.285, "input_tokens": 2455, "output_tokens": 207, "usd": null}, "jev_confidence": 0.81, "jev_probabilities": {"tune_hyperparams": 0.86, "switch_model": 0.14, "request_code_fix": 0.0, "transform_features": 0.0, "acquire_data": 0.0}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model\u2019s performance is plateauing around 0.81 despite adding more data (learning curve drops from 0.854 at 250 samples to 0.816 at 500). Train accuracy (0.796) is slightly lower than test accuracy (0.816), giving a negative train\u2011test gap (\u20110.020), which signals underfitting rather than overfitting. The random\u2011forest was constrained to max_depth=4 and min_samples_leaf=5 (trace 01a09bc9-851c-799c-a588-f11d3da5f768), limiting its capacity; this explains why accuracy degrades as the dataset grows. Additionally, per\u2011class recall is highly imbalanced (0.614 for the negative class vs 0.98 for the positive class), indicating the model is biased toward the majority/positive class despite only modest class imbalance (train_pos_frac\u22480.59). Earlier attempts with logistic regression (trace 01a09bc5-647c-7d1f-8e48-53c9db097024) achieved higher accuracy (0.849) with a near\u2011zero gap, suggesting the current tree depth is too restrictive. Therefore the primary issues are underfitting due to overly limited model capacity and residual class\u2011imbalance bias.", "cited": ["01a09bc9-851c-799c-a588-f11d3da5f768", "01a09bc5-647c-7d1f-8e48-53c9db097024"], "diagnosis_provider": "wandb_inference"}, {"iteration": 5, "accuracy": 0.827027027027027, "balanced_accuracy": 0.8128395936687928, "train_accuracy": 0.868, "gap": 0.040972972972972976, "n_train": 500, "model": "random_forest", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "tune_hyperparams({'params': {'class_weight': 'balanced'}})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["overfitting", "data_starved", "class_imbalance", "plateau"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 2.301, "input_tokens": 2590, "output_tokens": 200, "usd": null}, "jev_confidence": 0.73, "jev_probabilities": {"tune_hyperparams": 0.79, "switch_model": 0.11, "acquire_data": 0.08, "transform_features": 0.01, "request_code_fix": 0.01}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model\u2019s test accuracy (0.827) is only 0.041 lower than train accuracy (0.868), indicating a modest over\u2011fit. The learning curve shows a plateau at 250\u2011375 samples (0.843) then a drop at 500 samples (0.827), a classic sign that adding more data does not improve generalisation and the model is beginning to over\u2011fit to the limited 500\u2011sample training set (data_starved). Moreover, per\u2011class recall is highly asymmetric: recall for the negative class is 0.675 while the positive class is 0.951, and balanced accuracy (0.813) is noticeably lower than raw accuracy (0.827). This points to residual class\u2011imbalance effects despite the modest imbalance (train_pos_frac\u202f\u2248\u202f0.59). Past attempts to fix it \u2013 applying class_weight='balanced' (trace 01a09bc5-b95d-7e73-a7d0-b835ef008e16) and adding more sites (VA data, trace 01a09bc6-7573-788b-adc4-0ce5d79dec64) \u2013 did not raise performance, confirming that the issue is not simply feature scaling or data quantity. The current random\u2011forest (max_depth\u202f12) is relatively complex for only 500 examples, which together with the class\u2011imbalance explains the lingering gap and the low recall for the minority class. The diagnosis therefore combines overfitting, data starvation, and class\u2011imbalance as the primary reasons for the under\u2011performance.", "cited": ["01a09bc5-b95d-7e73-a7d0-b835ef008e16", "01a09bc9-8557-7787-9be8-a9c1ba43ec29", "01a09bc9-dd2c-76a7-add3-2430b95e6c73", "01a09bc9-dcfe-7a25-94b6-b7730f629ae0"], "diagnosis_provider": "wandb_inference"}, {"iteration": 6, "accuracy": 0.8108108108108109, "balanced_accuracy": 0.8059886605244507, "train_accuracy": 0.886, "gap": 0.07518918918918915, "n_train": 500, "model": "random_forest", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "switch_model({'family': 'logistic_regression'})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["overfitting", "data_starved", "class_imbalance"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.251, "input_tokens": 2533, "output_tokens": 163, "usd": null}, "jev_confidence": 0.74, "jev_probabilities": {"switch_model": 0.8, "transform_features": 0.11, "acquire_data": 0.07, "request_code_fix": 0.01}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model shows a classic over\u2011fitting pattern on a very small, heterogeneous dataset. Test accuracy (0.811) is 0.075 lower than train accuracy (0.886), and the learning curve peaks at 375 samples (0.854) then drops to 0.811 at 500 samples, indicating that adding more (noisy) data hurts performance. The per\u2011class recall is imbalanced (0.759 for the negative class vs 0.853 for the positive), reflecting the modest class imbalance (train pos 0.592, test pos 0.551) but not enough to explain the gap. Past actions that increased model capacity (switch to random_forest, depth 12, 500 trees) gave the best accuracy (0.827) but still left a sizable gap, and further regularisation attempts (class_weight balanced) actually reduced performance. Earlier attempts to acquire more data from other sites did not improve accuracy, suggesting the new data may be of lower quality or distribution\u2011shifted, exacerbating over\u2011fitting. Thus the primary issue is overfitting due to a high\u2011capacity model on a data\u2011starved, multi\u2011site dataset, with secondary contribution from modest class imbalance.", "cited": ["01a09bc9-8557-7787-9be8-a9c1ba43ec29", "01a09bca-243b-7cf8-a60f-41d867a5daaf", "01a09bca-2376-7065-bf47-8f8e4691313f", "01a09bc8-fd2f-7169-9150-cab1f89fb8d1"], "diagnosis_provider": "wandb_inference"}, {"iteration": 7, "accuracy": 0.8108108108108109, "balanced_accuracy": 0.8015001181195369, "train_accuracy": 0.77, "gap": -0.04081081081081084, "n_train": 500, "model": "logistic_regression", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "switch_model({'family': 'random_forest'})", "provider": "typesafe (jev-1.13.0) \u2014 low confidence 0.36 < 0.4, second opinion: accept", "evidence_tags": ["underfitting"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.356, "input_tokens": 2566, "output_tokens": 215, "usd": null}, "jev_confidence": 0.36, "jev_probabilities": {"switch_model": 0.5, "tune_hyperparams": 0.41, "transform_features": 0.08, "acquire_data": 0.01, "request_code_fix": 0.0}, "escalation": {"verdict": "accept", "critique": "The diagnosis correctly identifies underfitting and points to the higher\u2011capacity RandomForest (n_estimators=500, max_depth=12) that previously achieved 0.827 accuracy. Switching from the under\u2011performing LogisticRegression back to a RandomForest aligns with the evidence and is the most supported remedy, despite the low confidence score."}, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model is underfitting. Train accuracy (0.77) is lower than test accuracy (0.811), giving a negative train\u2011test gap of -0.0408, which signals insufficient capacity rather than over\u2011fitting. The learning curve confirms this: accuracy drops from 0.8541 at 250 samples to 0.8108 at 500 samples, showing that adding more data hurts performance because the model cannot capture the underlying patterns. The best historical result (0.827) was achieved with a higher\u2011capacity RandomForest (n_estimators=500, max_depth=12) \u2013 a modest gain over the current LogisticRegression (0.811). Subsequent attempts to balance class weights reduced performance, indicating that class imbalance is not the primary driver. Therefore, the dominant issue is underfitting due to a model that is too simple for the available features and data distribution.", "cited": ["01a09bc5-6469-7c29-8565-eadac26f0bec", "01a09bc5-647c-7d1f-8e48-53c9db097024", "01a09bc9-8557-7787-9be8-a9c1ba43ec29", "01a09bca-243b-7cf8-a60f-41d867a5daaf"], "diagnosis_provider": "wandb_inference"}, {"iteration": 8, "accuracy": 0.8054054054054054, "balanced_accuracy": 0.7965981573352232, "train_accuracy": 1.0, "gap": 0.1945945945945946, "n_train": 500, "model": "random_forest", "sites": ["switzerland", "cleveland", "va"], "feature_ops": [], "target": 0.85, "action": "switch_model({'family': 'svm'})", "provider": "typesafe (jev-1.13.0)", "evidence_tags": ["overfitting", "class_imbalance"], "history_source": "weave_api", "stop": null, "accounting": {"provider": "typesafe", "latency_s": 0.337, "input_tokens": 2604, "output_tokens": 161, "usd": null}, "jev_confidence": 0.58, "jev_probabilities": {"switch_model": 0.68, "transform_features": 0.27, "acquire_data": 0.03, "request_code_fix": 0.01}, "escalation": null, "poison": {"site": "va", "label_noise": 0.4}, "controls": null, "diagnosis": "The model is severely overfitting: train accuracy is perfect (1.0) while test accuracy is only 0.805, giving a large train\u2011test gap of 0.1946. The learning curve drops as more data is added (0.8486 \u2192 0.8216 \u2192 0.8054), confirming that the high\u2011capacity random\u2011forest continues to memorize the training set rather than generalize. Per\u2011class recall is imbalanced (0.711 for the negative class vs 0.882 for the positive), and the confusion matrix shows many false positives (24) and false negatives (12), indicating the model is biased toward the majority class (train_pos_frac\u202f=\u202f0.592). Past interventions that increased model capacity (more trees, deeper depth) gave only marginal gains, and attempts to address class imbalance with class_weight='balanced' actually hurt performance, showing that the core issue is over\u2011parameterization relative to the modest dataset (n_train\u202f=\u202f500, n_features\u202f=\u202f13). Further data acquisition from additional sites has not improved performance, suggesting the new data may be of lower quality or distribution\u2011shifted, reinforcing the overfitting plateau. The diagnosis therefore points to overfitting as the primary cause, compounded by modest class imbalance.", "cited": ["01a09bc9-8557-7787-9be8-a9c1ba43ec29", "01a09bc9-dd2c-76a7-add3-2430b95e6c73", "01a09bca-8b88-735b-8b90-e01827f74b57", "01a09bca-e56c-7023-913d-00273a93dead"], "diagnosis_provider": "wandb_inference"}]}/*RUN_DATA_END*/</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (() => {
@@ -217,8 +213,9 @@
   const SITE_ROWS = { switzerland: 123, hungary: 294, va: 200, cleveland: 303 };
   const SITE_ORDER = ["switzerland", "hungary", "va", "cleveland"];
   const PHASES = ["train", "evaluate", "diagnose", "act"];
-  const PHASE_SECONDS = [1.1, 1.3, 2.4, 1.8];
+  const PHASE_SECONDS = [1.2, 1.4, 2.6, 2.0];
   const ITER_SECONDS = PHASE_SECONDS.reduce((a, b) => a + b, 0);
+  const C = { pink: 0xff90e8, yellow: 0xffc900, green: 0x23a094, blue: 0x90a8ed, orange: 0xff7051, white: 0xffffff, dark: 0x1a1a1a, soft: 0x3a3a3a };
 
   let run = JSON.parse(document.getElementById("run-data").textContent.replace(/\/\*RUN_DATA_(START|END)\*\//g, ""));
   const slim = r => ({
@@ -240,162 +237,201 @@
   const actionKind = a => (a || "").split("(")[0];
   const actionArg = a => { const m = /\{'(?:site|family|op)': '([^']+)'/.exec(a || ""); return m ? m[1] : (a || "").replace(/^[^(]*\(/, "").replace(/\)$/, ""); };
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const lerp = (a, b, s) => a + (b - a) * s;
 
   // ------------------------------------------------------------------ three.js scene
   const stage = $("stage");
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setClearColor(0x0a1418, 1);
+  renderer.setClearColor(0x000000, 1);
   stage.appendChild(renderer.domElement);
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x0a1418, 14, 30);
-  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+  scene.fog = new THREE.Fog(0x000000, 26, 48);
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 120);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const key = new THREE.DirectionalLight(0xffffff, 0.7); key.position.set(8, 14, 10); scene.add(key);
+  const fill = new THREE.DirectionalLight(0x90a8ed, 0.3); fill.position.set(-10, 6, -8); scene.add(fill);
 
-  scene.add(new THREE.AmbientLight(0x9fb8c0, 0.35));
-  const key = new THREE.DirectionalLight(0xe4eef0, 0.8); key.position.set(5, 9, 6); scene.add(key);
-  const rim = new THREE.PointLight(0x3fb7d9, 0.6, 30); rim.position.set(-6, 4, -6); scene.add(rim);
+  const FLOOR = -3.2;
+  const grid = new THREE.GridHelper(44, 22, 0x2a2a2a, 0x151515); grid.position.y = FLOOR; scene.add(grid);
 
-  // floor grid: a monitor's graticule
-  const grid = new THREE.GridHelper(24, 24, 0x1f3d47, 0x142b34); grid.position.y = -2.2; scene.add(grid);
-
-  const glowTex = (() => {
-    const c = document.createElement("canvas"); c.width = c.height = 128;
-    const g = c.getContext("2d"); const r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-    r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(0.35, "rgba(255,255,255,.35)"); r.addColorStop(1, "rgba(255,255,255,0)");
-    g.fillStyle = r; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
-  })();
-  const glow = (color, size) => {
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
-    s.scale.set(size, size, 1); return s;
-  };
-  const label = (text, color = "#e4eef0", px = 44) => {
-    const c = document.createElement("canvas"); c.width = 512; c.height = 128;
-    const g = c.getContext("2d"); g.font = `600 ${px}px "IBM Plex Mono", monospace`; g.fillStyle = color;
-    g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(text, 256, 64);
+  // flat "sticker" material + white edges = Gumroad's flat-color-with-outline look, in 3D
+  const flat = (color, opts = {}) => new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.12, ...opts });
+  const outline = (geo, color = C.white) => new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color }));
+  const label = (text, color = "#ffffff", px = 46, bg = null) => {
+    const c = document.createElement("canvas"); c.width = 640; c.height = 140;
+    const g = c.getContext("2d"); g.font = `700 ${px}px "JetBrains Mono", monospace`;
+    if (bg) { const w = g.measureText(text).width + 40; g.fillStyle = bg; g.fillRect(320 - w / 2, 28, w, 84); g.strokeStyle = "#fff"; g.lineWidth = 3; g.strokeRect(320 - w / 2, 28, w, 84); }
+    g.fillStyle = color; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(text, 320, 70);
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
-    s.scale.set(3.2, 0.8, 1); return s;
+    s.scale.set(4.6, 1.0, 1); return s;
   };
+  const glowTex = (() => { const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"); const r = g.createRadialGradient(64, 64, 0, 64, 64, 64); r.addColorStop(0, "rgba(255,255,255,.9)"); r.addColorStop(.4, "rgba(255,255,255,.25)"); r.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = r; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
+  const glow = (color, size) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })); s.scale.set(size, size, 1); return s; };
 
-  // --- the loop ring: four stations
-  const R = 3.1;
-  const ringGeo = new THREE.TorusGeometry(R, 0.03, 8, 128);
-  scene.add(Object.assign(new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0x1f3d47 })), { rotation: new THREE.Euler(Math.PI / 2, 0, 0) }));
+  // --- the loop ring: four function stations, BIG
+  const R = 6.4;
+  const ringTube = new THREE.Mesh(new THREE.TorusGeometry(R, 0.09, 10, 160), new THREE.MeshBasicMaterial({ color: C.soft }));
+  ringTube.rotation.x = Math.PI / 2; scene.add(ringTube);
+  const ringDash = new THREE.Mesh(new THREE.TorusGeometry(R, 0.04, 6, 160), new THREE.MeshBasicMaterial({ color: C.pink, transparent: true, opacity: 0.35 }));
+  ringDash.rotation.x = Math.PI / 2; scene.add(ringDash);
   const stationAngle = k => Math.PI / 2 - k * (Math.PI / 2);
   const stationPos = k => new THREE.Vector3(Math.cos(stationAngle(k)) * R, 0, -Math.sin(stationAngle(k)) * R);
+  const STATION_COLORS = [C.yellow, C.green, C.blue, C.pink];
+  const STATION_FN = ["train()", "evaluate()", "diagnose()", "act()"];
   const stations = PHASES.map((name, k) => {
     const grp = new THREE.Group(); grp.position.copy(stationPos(k));
-    const mat = new THREE.MeshStandardMaterial({ color: 0x142b34, emissive: 0xf2b441, emissiveIntensity: 0.05, roughness: 0.35, metalness: 0.2 });
-    const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.42, 1), mat);
-    const halo = glow(0xf2b441, 2.2); halo.material.opacity = 0;
-    const tag = label(name.toUpperCase(), "#e4eef0", 40); tag.position.y = 0.95;
-    grp.add(mesh, halo, tag); scene.add(grp);
-    return { grp, mat, halo, mesh };
+    const geo = new THREE.BoxGeometry(1.7, 1.7, 1.7);
+    const mat = flat(STATION_COLORS[k]);
+    const box = new THREE.Mesh(geo, mat); box.add(outline(geo));
+    const halo = glow(STATION_COLORS[k], 5.5);
+    const fnTag = label(STATION_FN[k], "#000", 46, ["#ffc900", "#23a094", "#90a8ed", "#ff90e8"][k]); fnTag.position.y = 1.9;
+    const decoTag = label("@weave.op", "#ff90e8", 34); decoTag.position.y = 2.75; decoTag.scale.set(3.2, 0.7, 1);
+    const firing = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.06, 8, 64), new THREE.MeshBasicMaterial({ color: STATION_COLORS[k], transparent: true, opacity: 0 }));
+    firing.rotation.x = Math.PI / 2;
+    grp.add(box, halo, fnTag, decoTag, firing); scene.add(grp);
+    return { grp, box, mat, halo, firing, fireT: 0 };
   });
-  const pulse = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), new THREE.MeshBasicMaterial({ color: 0xf2b441 }));
-  const pulseGlow = glow(0xf2b441, 1.4); pulse.add(pulseGlow); scene.add(pulse);
-  const trail = []; for (let i = 0; i < 14; i++) { const t = glow(0xf2b441, 0.9 - i * 0.05); t.material.opacity = 0.25 - i * 0.016; scene.add(t); trail.push(t); }
+  const pulse = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 20), new THREE.MeshBasicMaterial({ color: C.pink }));
+  pulse.add(outline(new THREE.IcosahedronGeometry(0.42, 1), C.white)); scene.add(pulse);
+  const pulseGlow = glow(C.pink, 3.2); pulseGlow.material.opacity = 0.7; pulse.add(pulseGlow);
+  const trail = []; for (let i = 0; i < 18; i++) { const t = glow(C.pink, 1.6 - i * 0.07); t.material.opacity = 0.32 - i * 0.017; scene.add(t); trail.push(t); }
 
-  // --- hospital data cells (left rack)
+  // --- hospital data cells (left rack): animated, chunky, outlined
   const cells = {};
   SITE_ORDER.forEach((site, i) => {
-    const h = 0.35 + SITE_ROWS[site] / 303 * 1.4;
-    const mat = new THREE.MeshStandardMaterial({ color: 0x142b34, emissive: 0xb9a6ff, emissiveIntensity: 0.0, transparent: true, opacity: 0.55, roughness: 0.4 });
-    const m = new THREE.Mesh(new THREE.BoxGeometry(0.9, h, 0.9), mat);
-    const x = -6.4, z = -2.4 + i * 1.6;
-    m.position.set(x, -2.2 + h / 2, z);
-    const edge = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), new THREE.LineBasicMaterial({ color: 0x3a5560 }));
-    m.add(edge);
-    const tag = label(`${site} · ${SITE_ROWS[site]}`, "#8fa8ae", 34); tag.position.set(x, -2.2 + h + 0.55, z); tag.scale.set(2.6, 0.65, 1);
-    const halo = glow(0xb9a6ff, 2.4); halo.position.copy(m.position); halo.material.opacity = 0;
-    scene.add(m, tag, halo);
-    cells[site] = { m, mat, tag, halo, h, lit: false, bad: false };
+    const h = 0.6 + SITE_ROWS[site] / 303 * 2.2;
+    const geo = new THREE.BoxGeometry(1.5, h, 1.5);
+    const mat = new THREE.MeshLambertMaterial({ color: C.dark, emissive: C.blue, emissiveIntensity: 0, transparent: true, opacity: 0.85 });
+    const m = new THREE.Mesh(geo, mat); m.add(outline(geo, C.soft));
+    const x = -12.5, z = -4.5 + i * 3.0;
+    m.position.set(x, FLOOR + h / 2, z);
+    const tag = label(`${site} · ${SITE_ROWS[site]} rows`, "#b3b3b3", 36); tag.position.set(x, FLOOR + h + 0.9, z); tag.scale.set(4.4, 0.95, 1);
+    const halo = glow(C.blue, 5); halo.position.copy(m.position);
+    const stateTag = label("locked", "#6f6f6f", 34); stateTag.position.set(x, FLOOR + h + 1.6, z); stateTag.scale.set(3, 0.65, 1);
+    scene.add(m, tag, halo, stateTag);
+    cells[site] = { m, mat, tag, halo, h, base: FLOOR + h / 2, bad: false, stateTag, phase: i * 1.3, edge: m.children[0] };
   });
-  const rackTag = label("HOSPITAL SITES · revealed one at a time", "#5b737a", 30); rackTag.position.set(-6.4, 1.2, 0); rackTag.scale.set(4.4, 1.1, 1); scene.add(rackTag);
+  const rackTag = label("HOSPITAL SITES · revealed by acquire_data()", "#ffffff", 34, "#90a8ed"); rackTag.position.set(-12.5, 4.6, 0); rackTag.scale.set(7.2, 1.5, 1);
+  scene.add(rackTag);
 
-  // --- Weave memory stack (behind the ring)
+  // --- Weave memory stack (behind the ring): one plate per completed iteration
   const plates = []; const MAX_PLATES = 24;
-  const plateGeo = new THREE.BoxGeometry(1.6, 0.08, 1.0);
+  const plateGeo = new THREE.BoxGeometry(3.0, 0.16, 1.8);
   for (let i = 0; i < MAX_PLATES; i++) {
-    const mat = new THREE.MeshStandardMaterial({ color: 0x3fb7d9, emissive: 0x3fb7d9, emissiveIntensity: 0.25, transparent: true, opacity: 0.0 });
-    const p = new THREE.Mesh(plateGeo, mat); p.position.set(0.2, -2.1 + i * 0.16, -6.2); p.visible = false; scene.add(p); plates.push(p);
+    const mat = new THREE.MeshLambertMaterial({ color: C.green, emissive: C.green, emissiveIntensity: 0.2, transparent: true, opacity: 0 });
+    const p = new THREE.Mesh(plateGeo, mat); p.add(outline(plateGeo, C.white)); p.children[0].material.transparent = true; p.children[0].material.opacity = 0;
+    p.position.set(0, FLOOR + 0.1 + i * 0.28, -12); p.visible = false; scene.add(p); plates.push(p);
   }
-  const memTag = label("WEAVE TRACES · its memory", "#3fb7d9", 32); memTag.position.set(0.2, 2.2, -6.2); memTag.scale.set(3.6, 0.9, 1); scene.add(memTag);
-  const threads = []; for (let i = 0; i < 6; i++) {
+  const memTag = label("WEAVE TRACES · its memory", "#000", 36, "#23a094"); memTag.position.set(0, 4.8, -12); memTag.scale.set(6.4, 1.35, 1); scene.add(memTag);
+  const threads = []; for (let i = 0; i < 8; i++) {
     const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
-    const l = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x3fb7d9, transparent: true, opacity: 0 })); scene.add(l); threads.push(l);
+    const l = new THREE.Line(g, new THREE.LineBasicMaterial({ color: C.green, transparent: true, opacity: 0 })); scene.add(l); threads.push(l);
   }
+  const threadDots = []; for (let i = 0; i < 8; i++) { const d = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), new THREE.MeshBasicMaterial({ color: C.green, transparent: true, opacity: 0 })); scene.add(d); threadDots.push(d); }
 
   // --- accuracy column (right)
-  const COL_H = 4.2, colX = 6.2, colZ = 0;
-  const colBase = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, COL_H, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0x1f3d47, wireframe: true, transparent: true, opacity: 0.35 }));
-  colBase.position.set(colX, -2.2 + COL_H / 2, colZ); scene.add(colBase);
-  const colMat = new THREE.MeshStandardMaterial({ color: 0x5ee1c1, emissive: 0x5ee1c1, emissiveIntensity: 0.35, roughness: 0.3 });
-  const col = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 1, 32), colMat); col.scale.y = 0.001; col.position.set(colX, -2.2, colZ); scene.add(col);
-  const targetRing = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.035, 8, 64), new THREE.MeshBasicMaterial({ color: 0xf2b441 }));
-  targetRing.rotation.x = Math.PI / 2; targetRing.position.set(colX, -2.2 + 0.85 * COL_H, colZ); scene.add(targetRing);
-  const baseRing = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.015, 6, 64), new THREE.MeshBasicMaterial({ color: 0x5b737a }));
-  baseRing.rotation.x = Math.PI / 2; baseRing.position.set(colX, -2.2 + 0.787 * COL_H, colZ); scene.add(baseRing);
-  const accTag = label("ACCURACY", "#5ee1c1", 34); accTag.position.set(colX, 2.6, colZ); accTag.scale.set(2.6, 0.65, 1); scene.add(accTag);
-  const tgtTag = label("target 0.85", "#f2b441", 30); tgtTag.position.set(colX + 1.7, -2.2 + 0.85 * COL_H, colZ); tgtTag.scale.set(2.2, 0.55, 1); scene.add(tgtTag);
-  const baseTag = label("published 0.787", "#5b737a", 28); baseTag.position.set(colX + 1.8, -2.2 + 0.787 * COL_H - 0.35, colZ); baseTag.scale.set(2.4, 0.6, 1); scene.add(baseTag);
+  const COL_H = 6.4, colX = 12.5, colZ = 0;
+  const colFrameGeo = new THREE.BoxGeometry(1.6, COL_H, 1.6);
+  const colFrame = outline(colFrameGeo, C.white); colFrame.position.set(colX, FLOOR + COL_H / 2, colZ); scene.add(colFrame);
+  const colMat = flat(C.yellow);
+  const col = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1, 1.3), colMat); col.scale.y = 0.001; col.position.set(colX, FLOOR, colZ); scene.add(col);
+  const targetRing = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.08, 8, 64), new THREE.MeshBasicMaterial({ color: C.pink }));
+  targetRing.rotation.x = Math.PI / 2; targetRing.position.set(colX, FLOOR + 0.85 * COL_H, colZ); scene.add(targetRing);
+  const baseRing = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.03, 6, 64), new THREE.MeshBasicMaterial({ color: C.soft }));
+  baseRing.rotation.x = Math.PI / 2; baseRing.position.set(colX, FLOOR + 0.787 * COL_H, colZ); scene.add(baseRing);
+  const accTag = label("ACCURACY", "#000", 40, "#ffc900"); accTag.position.set(colX, FLOOR + COL_H + 1.1, colZ); accTag.scale.set(4.4, 0.95, 1); scene.add(accTag);
+  const accNum = { sprite: null, text: "" };
+  const tgtTag = label("target 0.85", "#ff90e8", 34); tgtTag.position.set(colX + 2.9, FLOOR + 0.85 * COL_H, colZ); tgtTag.scale.set(3.4, 0.75, 1); scene.add(tgtTag);
+  const baseTag = label("published 0.787", "#6f6f6f", 30); baseTag.position.set(colX + 3.1, FLOOR + 0.787 * COL_H - 0.55, colZ); baseTag.scale.set(3.6, 0.8, 1); scene.add(baseTag);
+  const setAccNum = txt => { if (txt === accNum.text) return; accNum.text = txt; if (accNum.sprite) scene.remove(accNum.sprite); accNum.sprite = label(txt, "#ffc900", 60); accNum.sprite.scale.set(3.6, 0.8, 1); accNum.sprite.position.set(colX, FLOOR + COL_H + 2.0, colZ); scene.add(accNum.sprite); };
+
+  // --- confetti burst when the target is beaten
+  const confetti = []; const confGeo = new THREE.BoxGeometry(0.22, 0.22, 0.05);
+  const confColors = [C.pink, C.yellow, C.green, C.blue, C.white];
+  for (let i = 0; i < 90; i++) { const m = new THREE.Mesh(confGeo, new THREE.MeshBasicMaterial({ color: confColors[i % 5] })); m.visible = false; scene.add(m); confetti.push({ m, v: new THREE.Vector3(), life: 0 }); }
+  let confettiFired = false;
+  const fireConfetti = () => { confetti.forEach(c => { c.m.visible = true; c.m.position.set(colX, FLOOR + COL_H, colZ); c.v.set((Math.random() - .5) * 9, 5 + Math.random() * 7, (Math.random() - .5) * 9); c.life = 2.5 + Math.random(); c.m.rotation.set(Math.random() * 6, Math.random() * 6, 0); }); };
 
   // ------------------------------------------------------------------ camera orbit (manual)
-  let yaw = 0.55, pitch = 0.42, dist = 14.5, dragging = false, lx = 0, ly = 0, autoRot = !reduced;
-  const placeCamera = () => {
-    camera.position.set(Math.sin(yaw) * Math.cos(pitch) * dist, Math.sin(pitch) * dist + 0.4, Math.cos(yaw) * Math.cos(pitch) * dist);
-    camera.lookAt(0, -0.3, -0.8);
-  };
+  let yaw = 0.62, pitch = 0.40, dist = 26, dragging = false, lx = 0, ly = 0, autoRot = !reduced;
+  const placeCamera = () => { camera.position.set(Math.sin(yaw) * Math.cos(pitch) * dist, Math.sin(pitch) * dist + 1.2, Math.cos(yaw) * Math.cos(pitch) * dist); camera.lookAt(0, -0.2, -1.5); };
   const el = renderer.domElement;
   el.addEventListener("pointerdown", e => { dragging = true; autoRot = false; lx = e.clientX; ly = e.clientY; el.setPointerCapture(e.pointerId); });
-  el.addEventListener("pointermove", e => { if (!dragging) return; yaw -= (e.clientX - lx) * 0.005; pitch = Math.max(0.08, Math.min(1.2, pitch + (e.clientY - ly) * 0.004)); lx = e.clientX; ly = e.clientY; });
+  el.addEventListener("pointermove", e => { if (!dragging) return; yaw -= (e.clientX - lx) * 0.005; pitch = Math.max(0.08, Math.min(1.25, pitch + (e.clientY - ly) * 0.004)); lx = e.clientX; ly = e.clientY; });
   el.addEventListener("pointerup", () => dragging = false);
-  el.addEventListener("wheel", e => { dist = Math.max(8, Math.min(24, dist + e.deltaY * 0.01)); e.preventDefault(); }, { passive: false });
+  el.addEventListener("wheel", e => { dist = Math.max(14, Math.min(44, dist + e.deltaY * 0.02)); e.preventDefault(); }, { passive: false });
   const resize = () => { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); };
   new ResizeObserver(resize).observe(stage); resize();
 
   // ------------------------------------------------------------------ playback state
   let t = 0, playing = false, speed = 1, last = performance.now();
-  let shown = { iter: -1, phase: -1 };   // what the monitor rail currently displays
+  let shown = { iter: -1, phase: -1 };
   const total = () => rows.length * ITER_SECONDS;
   const at = time => { const i = Math.min(rows.length - 1, Math.floor(time / ITER_SECONDS)); let rem = time - i * ITER_SECONDS, k = 0; while (k < 3 && rem > PHASE_SECONDS[k]) { rem -= PHASE_SECONDS[k]; k++; } return { i, k, p: Math.min(1, rem / PHASE_SECONDS[k]) }; };
 
+  // ------------------------------------------------------------------ call cards (functions firing)
+  const callsEl = $("calls");
+  const callSig = (r, k, prev) => {
+    const sites = r.sites.map(s => s.slice(0, 2)).join("+");
+    if (k === 0) return { fn: "train", args: `state=<${r.model}, ${sites}>, X[${r.n_train}×13]`, ret: `→ Pipeline(${r.feature_ops.concat([r.model]).join(" → ")})` };
+    if (k === 1) return { fn: "evaluate", args: `model, X_test[185]`, ret: `→ acc ${r.accuracy.toFixed(3)} · gap ${sign(r.gap)}` };
+    if (k === 2) return { fn: "diagnose", args: `eval, history=<${r.history_source || "local"}${r.cited && r.cited.length ? `, ${r.cited.length} traces` : ""}>`, ret: r.stop === "target" ? "→ target beaten, stop" : `→ tags ${JSON.stringify(r.evidence_tags)}` };
+    const esc = r.escalation ? ` ⟶ second_opinion() ${r.escalation.verdict}` : "";
+    return { fn: "act", args: `decide_action(diagnosis)${r.jev_confidence != null ? ` p=${r.jev_confidence.toFixed(2)}` : ""}${esc}`, ret: r.action ? `→ ${r.action}` : "→ none" };
+  };
+  function pushCall(r, k) {
+    const s = callSig(r, k);
+    const d = document.createElement("div"); d.className = "call";
+    d.innerHTML = `<span class="deco">@weave.op</span> <span class="fn">${s.fn}</span>(<span class="arg">${s.args}</span>)<span class="ret wait"><span class="cur"></span></span>`;
+    callsEl.prepend(d); requestAnimationFrame(() => d.classList.add("in"));
+    [...callsEl.children].forEach((c, j) => { if (j > 0) c.classList.add("old"); if (j > 3) c.remove(); });
+    d.dataset.ret = s.ret;
+    return d;
+  }
+  const resolveCall = d => { if (!d) return; const ret = d.querySelector(".ret"); if (ret && ret.classList.contains("wait")) { ret.classList.remove("wait"); ret.textContent = d.dataset.ret; } };
+  let currentCall = null;
+
   // ------------------------------------------------------------------ monitor rail
   const setPhaseUI = k => [...$("phase").children].forEach((s, j) => { s.className = j === k ? "on" : j < k ? "done" : ""; });
-  const banner = (text, cls = "") => { const b = $("banner"); b.textContent = text; b.className = "banner show " + cls; clearTimeout(banner.tm); banner.tm = setTimeout(() => b.classList.remove("show"), 3200); };
+  const banner = (text, cls = "") => { const b = $("banner"); b.textContent = text; b.className = "banner show " + cls; clearTimeout(banner.tm); banner.tm = setTimeout(() => b.classList.remove("show"), 3400); };
 
   function renderRail(i, k) {
     const r = rows[i], prev = rows[i - 1];
-    $("iterLabel").textContent = `iteration ${r.iteration} · ${PHASES[k]}`;
+    $("iterLabel").innerHTML = `<i style="background:var(--yellow)"></i>iteration ${r.iteration} · ${PHASES[k]}`;
     $("model").textContent = r.model; $("nTrain").textContent = r.n_train; $("sites").textContent = r.sites.join(" · ");
     const evaluated = k >= 1;
-    $("acc").innerHTML = (evaluated ? r.accuracy.toFixed(3) : "—") + "<small>held-out</small>";
-    $("acc").className = "acc" + (evaluated && r.accuracy >= r.target ? "" : " under");
+    $("acc").innerHTML = (evaluated ? r.accuracy.toFixed(3) : "—") + "<small>held-out accuracy</small>";
+    $("acc").className = "acc" + (evaluated && r.accuracy >= r.target ? " hit" : "");
     $("trainAcc").textContent = evaluated ? fmt3(r.train_accuracy) : "—"; $("gap").textContent = evaluated ? sign(r.gap) : "—";
     $("fill").style.width = (evaluated ? r.accuracy * 100 : (prev ? prev.accuracy * 100 : 0)) + "%";
-    $("tgtMark").style.left = r.target * 100 + "%"; $("baseMark").style.left = "78.7%";
+    $("tgtMark").style.left = `calc(${r.target * 100}% - 1px)`; $("baseMark").style.left = "78.7%";
     const d = $("delta");
-    if (evaluated && prev) { const dv = r.accuracy - prev.accuracy; d.textContent = `Δ ${sign(dv)} from ${actionKind(prev.action)}`; d.className = "delta " + (dv > 0.001 ? "up" : dv < -0.001 ? "down" : ""); }
-    else d.textContent = "";
+    if (evaluated && prev) { const dv = r.accuracy - prev.accuracy; d.textContent = `Δ ${sign(dv)}`; d.title = `from ${actionKind(prev.action)}`; d.className = "delta " + (dv > 0.001 ? "up" : dv < -0.001 ? "down" : ""); }
+    else { d.textContent = "—"; d.className = "delta"; }
+    ["cardVitals", "cardDiag", "cardAct"].forEach((id, j) => $(id).classList.toggle("hot", j === (k === 0 ? 0 : k - 1)));
 
     const diagnosed = k >= 2;
     $("tags").innerHTML = diagnosed ? r.evidence_tags.map(x => `<span class="tag">${x}</span>`).join("") : "";
     const reason = $("reasoning");
     if (r.stop === "target") { reason.textContent = `Accuracy ${r.accuracy.toFixed(3)} ≥ target ${r.target}. Loop stops.`; reason.className = "reasoning"; }
     else if (diagnosed) { reason.textContent = r.diagnosis; reason.className = "reasoning"; }
-    else { reason.textContent = k === 0 ? "Training on the current sites…" : "Evaluating on the fixed held-out set…"; reason.className = "reasoning dim"; }
+    else { reason.textContent = k === 0 ? "train() is fitting the pipeline on the revealed sites…" : "evaluate() is scoring the fixed held-out set…"; reason.className = "reasoning dim"; }
     $("src").innerHTML = diagnosed && r.stop !== "target" ? `history: <b>${r.history_source || "local"}</b>${r.cited && r.cited.length ? ` · cited ${r.cited.length} trace${r.cited.length > 1 ? "s" : ""}: ${r.cited.slice(0, 2).map(c => c.slice(0, 8)).join(", ")}${r.cited.length > 2 ? "…" : ""}` : ""} · by ${r.diagnosis_provider || "—"}` : "";
 
     const decided = k >= 3;
-    $("action").textContent = decided ? (r.action || (r.stop === "target" ? "none — target beaten" : "—")) : "—";
+    const a = $("action");
+    a.textContent = decided ? (r.action || (r.stop === "target" ? "none — target beaten" : "—")) : "—";
+    a.className = "action" + (decided && r.action ? "" : " none");
     const probs = r.jev_probabilities || {};
-    const entries = Object.entries(probs).sort((a, b) => b[1] - a[1]);
+    const entries = Object.entries(probs).sort((x, y) => y[1] - x[1]);
     $("bars").innerHTML = decided && entries.length ? entries.map(([kx, v], j) => `<div class="bar${j === 0 ? " top" : ""}"><span>${kx}</span><div class="b"><i style="width:${(v * 100).toFixed(0)}%"></i></div><em>${v.toFixed(2)}</em></div>`).join("") : "";
     const g = $("gate");
-    if (decided && r.escalation) { g.className = "gate on"; g.innerHTML = `<span class="k">gate fired · confidence ${r.jev_confidence.toFixed(2)} &lt; 0.40 → ${r.escalation.verdict}</span><div>${r.escalation.critique || "Second opinion accepted the proposal."}</div>`; }
+    if (decided && r.escalation) { g.className = "gate on"; g.innerHTML = `<span class="k">gate fired · confidence ${r.jev_confidence.toFixed(2)} &lt; 0.40 → ${r.escalation.verdict}</span>${r.escalation.critique || "Second opinion accepted the proposal."}`; }
     else if (decided && r.jev_confidence != null) { g.className = "gate"; g.textContent = `Jev confidence ${r.jev_confidence.toFixed(2)} — above the 0.40 floor, no escalation.`; }
     else { g.className = "gate"; g.textContent = decided && r.provider ? `decided by ${r.provider}` : "Confidence gate: Jev below 0.40 → second opinion from the reasoning model."; }
-    const a = r.accounting;
-    $("cost").textContent = decided && a ? `${r.provider || a.provider} · ${a.latency_s.toFixed(2)} s · ${a.input_tokens ?? "?"}/${a.output_tokens ?? "?"} tokens${a.usd != null ? ` · $${a.usd.toFixed(5)}` : ""}` : "";
+    const ac = r.accounting;
+    $("cost").textContent = decided && ac ? `${r.provider || ac.provider} · ${ac.latency_s.toFixed(2)} s · ${ac.input_tokens ?? "?"}/${ac.output_tokens ?? "?"} tokens${ac.usd != null ? ` · $${ac.usd.toFixed(5)}` : ""}` : "";
 
     $("ledger").innerHTML = rows.slice(1, i + 1).map((x, j) => {
       const p = rows[j]; const dv = x.accuracy - p.accuracy;
@@ -405,46 +441,69 @@
     $("scrubLabel").textContent = `${i + 1} / ${rows.length}`; $("scrub").value = i;
   }
 
-  // ------------------------------------------------------------------ scene state per frame
-  const lerp = (a, b, s) => a + (b - a) * s;
+  // ------------------------------------------------------------------ scene per frame
   function renderScene(i, k, p, dt) {
     const r = rows[i], prev = rows[i - 1];
-    // stations + pulse
-    stations.forEach((s, j) => { const on = j === k; s.mat.emissiveIntensity = lerp(s.mat.emissiveIntensity, on ? 1.4 : 0.05, 0.15); s.halo.material.opacity = lerp(s.halo.material.opacity, on ? 0.55 : 0, 0.15); s.mesh.rotation.y += dt * (on ? 1.6 : 0.2); s.mesh.scale.setScalar(on ? 1 + Math.sin(performance.now() / 160) * 0.06 : 1); });
+    const now = performance.now();
+    // stations: the active function fires (expanding ring), spins, glows
+    stations.forEach((s, j) => {
+      const on = j === k;
+      s.mat.emissiveIntensity = lerp(s.mat.emissiveIntensity, on ? 0.75 : 0.12, 0.15);
+      s.halo.material.opacity = lerp(s.halo.material.opacity, on ? 0.6 : 0, 0.15);
+      s.box.rotation.y += dt * (on ? 2.2 : 0.25); s.box.rotation.x = lerp(s.box.rotation.x, on ? 0.35 : 0, 0.1);
+      const sc = on ? 1.12 + Math.sin(now / 150) * 0.05 : 1; s.box.scale.setScalar(lerp(s.box.scale.x, sc, 0.15));
+      s.grp.position.y = lerp(s.grp.position.y, on ? 0.5 : 0, 0.12);
+      if (on) { s.fireT += dt * 1.1; if (s.fireT > 1) s.fireT = 0; const f = s.fireT; s.firing.scale.setScalar(1 + f * 1.6); s.firing.material.opacity = (1 - f) * 0.8; }
+      else { s.firing.material.opacity = lerp(s.firing.material.opacity, 0, 0.2); }
+    });
     const ang = stationAngle(k) - (Math.PI / 2) * p;
-    pulse.position.set(Math.cos(ang) * R, 0, -Math.sin(ang) * R);
+    pulse.position.set(Math.cos(ang) * R, 0, -Math.sin(ang) * R); pulse.rotation.y += dt * 3; pulse.rotation.x += dt * 2;
     for (let j = trail.length - 1; j > 0; j--) trail[j].position.copy(trail[j - 1].position);
     trail[0].position.copy(pulse.position);
+    ringDash.rotation.z += dt * 0.15;
 
-    // hospital cells: lit = in this row's sites; the acquisition being taken lights during ACT
+    // hospital cells: bob idle, spin when lit, jump when acquired, flicker red when poison harm shows
     const acquiring = k === 3 && actionKind(r.action) === "acquire_data" ? actionArg(r.action) : null;
     SITE_ORDER.forEach(site => {
       const c = cells[site]; const lit = r.sites.includes(site) || (acquiring === site && p > 0.5);
-      const bad = r.poison && r.poison.site === site && r.sites.includes(site) && prev && prev.action && actionArg(prev.action) === site && r.accuracy < prev.accuracy && k >= 1;
-      c.bad = c.bad || bad;
-      const target = lit ? (c.bad ? 0.9 : 0.9) : 0;
-      c.mat.emissiveIntensity = lerp(c.mat.emissiveIntensity, target * (c.bad ? 0.7 + 0.3 * Math.abs(Math.sin(performance.now() / 180)) : 1), 0.1);
-      c.mat.emissive.setHex(c.bad ? 0xff6b6b : 0xb9a6ff); c.halo.material.color.setHex(c.bad ? 0xff6b6b : 0xb9a6ff);
-      c.mat.opacity = lerp(c.mat.opacity, lit ? 0.95 : 0.5, 0.1);
-      c.halo.material.opacity = lerp(c.halo.material.opacity, lit ? (acquiring === site ? 0.7 : 0.35) : 0, 0.1);
-      c.m.position.y = -2.2 + c.h / 2 + (acquiring === site ? Math.sin(p * Math.PI) * 0.5 : 0);
+      const harm = r.poison && r.poison.site === site && prev && prev.action && actionArg(prev.action) === site && r.accuracy < prev.accuracy && k >= 1;
+      c.bad = c.bad || !!harm;
+      const colr = c.bad ? C.orange : C.blue;
+      c.mat.emissive.setHex(colr); c.halo.material.color.setHex(colr);
+      c.mat.color.setHex(lit ? colr : C.dark);
+      c.mat.emissiveIntensity = lerp(c.mat.emissiveIntensity, lit ? (c.bad ? 0.5 + 0.4 * Math.abs(Math.sin(now / 160)) : 0.45) : 0, 0.1);
+      c.edge.material.color.setHex(lit ? C.white : C.soft);
+      c.halo.material.opacity = lerp(c.halo.material.opacity, lit ? (acquiring === site ? 0.8 : 0.3) : 0, 0.1);
+      const bob = Math.sin(now / 900 + c.phase) * 0.12;
+      const jump = acquiring === site ? Math.sin(Math.min(1, p) * Math.PI) * 1.4 : 0;
+      c.m.position.y = c.base + bob + jump; c.halo.position.y = c.m.position.y;
+      c.m.rotation.y += dt * (lit ? 0.9 : 0.12) + (acquiring === site ? dt * 6 : 0);
+      const want = c.bad ? "label noise ↓" : lit ? "acquired" : "locked";
+      if (c.stateTag.userData.txt !== want) { c.stateTag.userData.txt = want; scene.remove(c.stateTag); c.stateTag = label(want, c.bad ? "#ff7051" : lit ? "#90a8ed" : "#6f6f6f", 34); c.stateTag.scale.set(3, 0.65, 1); c.stateTag.position.set(c.m.position.x, FLOOR + c.h + 1.6, c.m.position.z); scene.add(c.stateTag); }
     });
 
-    // memory plates: one per completed iteration; threads to DIAGNOSE while diagnosing
-    plates.forEach((pl, j) => { const show = j < i || (j === i && k >= 2); pl.visible = j <= i; pl.material.opacity = lerp(pl.material.opacity, show ? 0.85 : 0, 0.12); pl.material.emissiveIntensity = (k === 2 && show) ? 0.25 + 0.5 * Math.abs(Math.sin(performance.now() / 260 + j)) : 0.25; });
-    const dPos = stationPos(2); dPos.y = 0;
-    threads.forEach((th, j) => { const idx = i - 1 - j; const on = k === 2 && idx >= 0 && (r.history_source === "weave_api" || idx >= 0); th.material.opacity = lerp(th.material.opacity, on ? 0.35 + 0.35 * Math.abs(Math.sin(performance.now() / 220 + j)) : 0, 0.15); if (idx >= 0) { const a = th.geometry.attributes.position; a.setXYZ(0, plates[idx].position.x, plates[idx].position.y, plates[idx].position.z); a.setXYZ(1, dPos.x, dPos.y, dPos.z); a.needsUpdate = true; } });
+    // memory plates + threads into diagnose()
+    plates.forEach((pl, j) => { const show = j < i || (j === i && k >= 2); pl.visible = j <= i; const o = show ? 0.95 : 0; pl.material.opacity = lerp(pl.material.opacity, o, 0.12); pl.children[0].material.opacity = pl.material.opacity; pl.material.emissiveIntensity = (k === 2 && show) ? 0.2 + 0.5 * Math.abs(Math.sin(now / 240 + j)) : 0.2; pl.position.x = Math.sin(now / 1400 + j * 0.4) * 0.15; });
+    const dPos = stationPos(2); dPos.y = 0.5;
+    threads.forEach((th, j) => {
+      const idx = i - 1 - j; const on = k === 2 && idx >= 0;
+      th.material.opacity = lerp(th.material.opacity, on ? 0.7 : 0, 0.15);
+      const dot = threadDots[j]; dot.material.opacity = th.material.opacity;
+      if (idx >= 0) { const a = th.geometry.attributes.position; const P = plates[idx].position; a.setXYZ(0, P.x, P.y, P.z); a.setXYZ(1, dPos.x, dPos.y, dPos.z); a.needsUpdate = true; const f = ((now / 900) + j * 0.17) % 1; dot.position.set(lerp(P.x, dPos.x, f), lerp(P.y, dPos.y, f), lerp(P.z, dPos.z, f)); }
+    });
 
     // accuracy column
     const acc = k >= 1 ? r.accuracy : (prev ? prev.accuracy : 0.0);
-    const targetScale = Math.max(0.001, acc * COL_H);
-    col.scale.y = lerp(col.scale.y, targetScale, 0.08); col.position.y = -2.2 + col.scale.y / 2;
+    col.scale.y = lerp(col.scale.y, Math.max(0.001, acc * COL_H), 0.08); col.position.y = FLOOR + col.scale.y / 2;
+    setAccNum(acc ? acc.toFixed(3) : "—");
     const beaten = acc >= r.target && k >= 1;
-    colMat.emissiveIntensity = beaten ? 0.6 + 0.4 * Math.abs(Math.sin(performance.now() / 200)) : 0.35;
-    targetRing.material.color.setHex(beaten ? 0x5ee1c1 : 0xf2b441); targetRing.rotation.z += dt * 0.6;
-    targetRing.position.y = -2.2 + r.target * COL_H; tgtTag.position.y = targetRing.position.y;
+    colMat.emissiveIntensity = beaten ? 0.5 + 0.4 * Math.abs(Math.sin(now / 180)) : 0.12;
+    targetRing.material.color.setHex(beaten ? C.green : C.pink); targetRing.rotation.z += dt * 0.8; targetRing.scale.setScalar(beaten ? 1.15 + Math.sin(now / 200) * 0.06 : 1);
+    targetRing.position.y = FLOOR + r.target * COL_H; tgtTag.position.y = targetRing.position.y;
+    if (beaten && !confettiFired) { confettiFired = true; fireConfetti(); }
+    confetti.forEach(c => { if (!c.m.visible) return; c.life -= dt; if (c.life <= 0) { c.m.visible = false; return; } c.v.y -= 12 * dt; c.m.position.addScaledVector(c.v, dt); c.m.rotation.x += dt * 4; c.m.rotation.y += dt * 3; });
 
-    if (autoRot && !dragging) yaw += dt * 0.06;
+    if (autoRot && !dragging) yaw += dt * 0.05;
     placeCamera(); renderer.render(scene, camera);
   }
 
@@ -456,22 +515,26 @@
       const { i, k, p } = at(t);
       if (i !== shown.iter || k !== shown.phase) {
         const r = rows[i];
-        if (k === 1 && i > 0 && shown.phase !== 1) { const dv = r.accuracy - rows[i - 1].accuracy; banner(`${actionKind(rows[i - 1].action)} → Δ ${sign(dv)}`, dv > 0.001 ? "good" : dv < -0.001 ? "bad" : ""); }
-        if (k === 3 && r.escalation) banner(`low confidence ${r.jev_confidence.toFixed(2)} → second opinion: ${r.escalation.verdict}`, "");
+        resolveCall(currentCall);
+        currentCall = pushCall(r, k);
+        if (k === 1 && i > 0) { const dv = r.accuracy - rows[i - 1].accuracy; banner(`${actionKind(rows[i - 1].action)}(${actionArg(rows[i - 1].action)}) → Δ ${sign(dv)}`, dv > 0.001 ? "good" : dv < -0.001 ? "bad" : ""); }
+        if (k === 3 && r.escalation) banner(`low confidence ${r.jev_confidence.toFixed(2)} → second_opinion(): ${r.escalation.verdict}`, "");
         if (k === 1 && r.stop === "target") banner(`target ${r.target} beaten at ${r.accuracy.toFixed(3)} — loop stops`, "good");
         if (k === 3 && i === rows.length - 1 && r.stop !== "target") banner(`stopped: ${r.stop === "plateau" ? "plateau — 3 actions with no gain" : "iteration budget"}`, "bad");
         shown = { iter: i, phase: k }; setPhaseUI(k); renderRail(i, k);
       }
+      if (currentCall && p > 0.55) resolveCall(currentCall);
       renderScene(i, k, p, dt);
     } else { placeCamera(); renderer.render(scene, camera); }
     requestAnimationFrame(frame);
   }
 
   // ------------------------------------------------------------------ controls
-  const setPlaying = v => { playing = v; $("play").textContent = v ? "❚❚ pause" : "▶ play"; if (v && t >= total() - 0.01) t = 0; };
+  const resetVisual = () => { shown = { iter: -1, phase: -1 }; Object.values(cells).forEach(c => c.bad = false); confettiFired = false; callsEl.innerHTML = ""; currentCall = null; };
+  const setPlaying = v => { playing = v; $("play").textContent = v ? "❚❚ pause" : "▶ play"; if (v && t >= total() - 0.01) { t = 0; resetVisual(); } };
   $("play").onclick = () => setPlaying(!playing);
-  $("restart").onclick = () => { t = 0; shown = { iter: -1, phase: -1 }; Object.values(cells).forEach(c => c.bad = false); setPlaying(true); };
-  const jump = i => { t = Math.max(0, Math.min(rows.length - 1, i)) * ITER_SECONDS + PHASE_SECONDS[0] + 0.01; shown = { iter: -1, phase: -1 }; };
+  $("restart").onclick = () => { t = 0; resetVisual(); setPlaying(true); };
+  const jump = i => { t = Math.max(0, Math.min(rows.length - 1, i)) * ITER_SECONDS + PHASE_SECONDS[0] + 0.01; shown = { iter: -1, phase: -1 }; callsEl.innerHTML = ""; currentCall = null; };
   $("fwd").onclick = () => jump(at(t).i + 1); $("back").onclick = () => jump(at(t).i - 1);
   $("scrub").oninput = e => jump(+e.target.value);
   $("speed").onchange = e => speed = +e.target.value;
@@ -480,8 +543,8 @@
   function loadRows(list, name) {
     rows = list.map(slim).filter(r => r.accuracy != null); if (!rows.length) return;
     run.name = name; $("runName").textContent = name;
-    const pz = rows.find(r => r.poison) ; $("poisonChip").hidden = !pz; if (pz) $("poisonChip").textContent = `adversarial reveal · ${pz.poison.site} ${(pz.poison.label_noise * 100).toFixed(0)}% label noise (documented)`;
-    $("scrub").max = rows.length - 1; t = 0; shown = { iter: -1, phase: -1 }; Object.values(cells).forEach(c => c.bad = false);
+    const pz = rows.find(r => r.poison); $("poisonChip").hidden = !pz; if (pz) $("poisonChip").textContent = `adversarial reveal · ${pz.poison.site} ${(pz.poison.label_noise * 100).toFixed(0)}% label noise (documented)`;
+    $("scrub").max = rows.length - 1; t = 0; resetVisual();
     renderRail(0, 0); setPhaseUI(0);
   }
   const drop = $("drop");
@@ -492,6 +555,6 @@
 
   loadRows(run.rows, run.name);
   requestAnimationFrame(frame);
-  setTimeout(() => setPlaying(true), 600);   // the page opens mid-motion, like a warmed-up demo
+  setTimeout(() => setPlaying(true), 600);
 })();
 </script>
