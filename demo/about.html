@@ -97,8 +97,8 @@
 
   <h2>The memory test: does it learn from its own mistakes?</h2>
   <p>To make "memory" more than a slogan, one run secretly flips 40% of the labels in the VA hospital's training rows (test rows untouched, documented in the config and every log — the agent is simply not told). The question is whether it notices from its own results.</p>
-  <figure><img src="shots/console-round2-diagnose.png" alt="Round 2 of the poisoned run: the score fell to 68.6%, -3.8 pts after adding VA; the caption says the last move hurt."><figcaption>Round 2 of the poisoned run: after unlocking VA the score fell 3.8 points. The ledger shows it, the diagnosis cites the earlier traces, and on the next decision the action head's confidence collapsed from 0.85 to 0.53 and then 0.26 — below the 0.40 floor, so the loop asked the reasoning model for a second opinion.</figcaption></figure>
-  <p>That run plateaued at 82.7% and stopped honestly instead of pretending. Without the poison, the same loop beats 85% in four to eight rounds. Both outcomes are in the console's run list.</p>
+  <figure><img src="shots/console-round2-diagnose.png" alt="Round 2 of the poisoned run: the score fell to 68.6%, -3.8 pts after adding VA; the caption says the last move hurt."><figcaption>Round 2 of the poisoned run: after unlocking VA the score fell 3.8 points. The ledger shows it, the diagnosis cites the earlier traces, and on the next decision the action head's confidence dropped from 85% to 53%. Later in the run it fell to 36% — below the 40% floor — and the loop asked the reasoning model for a second opinion.</figcaption></figure>
+  <p>That run peaked at 82.7% and stopped honestly instead of pretending. Without the poison, the same loop beats 85% in four to eight rounds — the full round-by-round tables for both are in the results below.</p>
 
   <h2 id="sponsors">Sponsors — what each one actually does in the loop</h2>
   <p>Track: <b>Best Use of Weave</b>. Each tool has a job the loop cannot do without; each one's status below is what really ran during the hackathon.</p>
@@ -149,20 +149,67 @@
     </ul>
   </div>
 
-  <h2 id="results">Results</h2>
+  <h2 id="results">Results, in detail</h2>
+
+  <h3>The setup every number below shares</h3>
+  <p>920 patients from four hospitals. Before round 0, a stratified 20% of <em>every</em> hospital is set aside as the exam: <b>185 patients, 55% of them with disease</b>. The exam never changes and is never trained on, so "guess everyone is sick" scores exactly <b>55.1%</b> — that is the floor the agent starts on, with only Switzerland's 98 training rows (93% positive). The target is <b>85%</b>; the best published single-hospital accuracy on this dataset is <b>78.7–83.3%</b>.</p>
+  <p>For context, here is what a <em>human-picked</em> configuration scores on the same exam when handed all four hospitals at once (no agent involved):</p>
   <div class="tbl"><table>
-    <thead><tr><th>Run</th><th>What happened</th><th>Rounds</th><th>Final</th></tr></thead>
+    <thead><tr><th>Hand-picked configuration, all 4 hospitals</th><th>Accuracy</th></tr></thead>
     <tbody>
-      <tr><td class="mono">clean, Inference-decided</td><td>unlock Hungary → 0.854</td><td class="num">4</td><td class="num">85.4% ✓</td></tr>
-      <tr><td class="mono">clean, TypeSafe-decided</td><td>two acquisitions, tuning, then switch to logistic regression</td><td class="num">8</td><td class="num">85.9% ✓</td></tr>
-      <tr><td class="mono">poison_va (40% label noise)</td><td>VA acquisition hurt (−3.8 pts); confidence gate fired 3×; plateaued and stopped</td><td class="num">9</td><td class="num">82.7% best</td></tr>
-      <tr><td class="mono">offline dry run (rule-based brain)</td><td>same action space, no network — the harness must always work</td><td class="num">5</td><td class="num">86.5% ✓</td></tr>
+      <tr><td>k-nearest neighbours, raw features</td><td class="num">70.3%</td></tr>
+      <tr><td>k-nearest neighbours, standardised</td><td class="num">83.2%</td></tr>
+      <tr><td>logistic regression, standardised</td><td class="num">85.4%</td></tr>
+      <tr><td>random forest, defaults</td><td class="num">85.9%</td></tr>
+      <tr><td>random forest, tuned by hand (300 trees, depth 8)</td><td class="num">88.1%</td></tr>
     </tbody>
   </table></div>
-  <figure><img src="shots/chart-poison.png" alt="Accuracy per round for the poisoned run against the target and published baseline lines."><figcaption>Accuracy round by round for the poisoned run. Annotations name the move taken at each point.</figcaption></figure>
+  <p class="note">So the question the runs answer is not "can a model reach 85%" — it is whether an agent starting blind, with one bad hospital and a bad model, can find its way there on its own evidence, and whether every step of that is legible.</p>
+
+  <h3>Run A — clean run, decided by TypeSafe with the confidence gate on</h3>
+  <p>Six rounds, 3 min 25 s wall clock (the reasoning call dominates each round). Final <b>87.0%</b>, above the target and above every hand-picked config except the hand-tuned forest.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Round</th><th>Data · model</th><th>Score</th><th>Δ from last move</th><th>Train / gap</th><th>Diagnosis tags</th><th>Move (how sure)</th><th>Decision time</th></tr></thead>
+    <tbody>
+      <tr><td class="num">0</td><td>Switzerland · kNN</td><td class="num">55.1%</td><td class="num">—</td><td class="num">93.9% / +0.387</td><td>memorising, needs data, lopsided classes</td><td>unlock Cleveland (100%)</td><td class="num">0.30 s</td></tr>
+      <tr><td class="num">1</td><td>+Cleveland · kNN</td><td class="num">72.4%</td><td class="num">+17.3 pts</td><td class="num">80.9% / +0.084</td><td>too simple, memorising, needs data</td><td>unlock VA (74%)</td><td class="num">0.28 s</td></tr>
+      <tr><td class="num">2</td><td>+VA · kNN</td><td class="num">69.7%</td><td class="num">−2.7 pts</td><td class="num">81.0% / +0.113</td><td>memorising, needs data, lopsided, stuck</td><td>one-hot encode features (57%)</td><td class="num">0.21 s</td></tr>
+      <tr><td class="num">3</td><td>same · kNN + one-hot</td><td class="num">69.2%</td><td class="num">−0.5 pts</td><td class="num">80.8% / +0.116</td><td>memorising, needs data, lopsided, stuck</td><td><b>gate fired</b> (21%) → reasoning model overrode: switch to logistic regression</td><td class="num">0.25 s + 9 s</td></tr>
+      <tr><td class="num">4</td><td>same · logistic regression</td><td class="num">84.9%</td><td class="num">+15.7 pts</td><td class="num">81.6% / −0.033</td><td>too simple, needs data, lopsided</td><td>unlock Hungary (52%)</td><td class="num">0.25 s</td></tr>
+      <tr><td class="num">5</td><td>all four · logistic regression</td><td class="num"><b>87.0%</b></td><td class="num">+2.1 pts</td><td class="num">81.4% / −0.057</td><td>—</td><td>target beaten, stop</td><td class="num">—</td></tr>
+    </tbody>
+  </table></div>
+  <div class="two">
+    <figure><img src="shots/chart-clean.png" alt="Accuracy per round for the clean run rising from 55% to 87%, crossing the target line at round 5."><figcaption>Held-out accuracy per round (solid) and training accuracy (dotted). The last two rounds sit <em>above</em> the training accuracy — the diagnosis correctly read that as "too simple / needs data" rather than overfitting.</figcaption></figure>
+    <figure><img src="shots/caption-override.png" alt="Caption: It decided to switch to a logistic regression — 21% sure. It wasn't confident, so it asked the reasoning model for a second opinion, which said override."><figcaption>Round 3, the turning point. The action head's confidence dropped to 21% (its probabilities were spread 38 / 31 / 29 across three moves). Below the 40% floor, the loop asked the reasoning model, which overrode the proposal.</figcaption></figure>
+  </div>
+  <p><b>What happened in round 3, exactly.</b> Two moves in a row had made things slightly worse. Jev's top choice was "get more data" at only 38%. The second opinion read the diagnosis and the effect ledger and wrote:</p>
+  <blockquote>"The diagnosis identifies data scarcity and class imbalance as the primary issues. Acquiring additional Hungarian data has already been attempted repeatedly with minimal or negative impact… Switching to a model that is less prone to overfitting on small, imbalanced datasets — such as logistic regression with regularization — offers a more promising path."</blockquote>
+  <p>The override was right on outcome: <b>+15.7 points</b> the next round, the largest single gain of the run. It was also partly wrong on facts — Hungary had <em>not</em> been acquired in this run. The agent's memory is the whole Weave project, so it was reading traces from earlier runs where Hungary had been tried. That is the honest shape of "memory is its own trace history": it works across runs, and it can conflate them. It is called out again under limitations.</p>
+  <p><b>Cost of the run.</b> Five structured decisions by TypeSafe: mean <b>0.26 s</b>, ~2,570 input / 210 output tokens each. Five diagnoses and one second opinion by W&amp;B Inference: 7–12 s each. Every diagnosis cited between 2 and 5 earlier trace IDs. No dollar figures are reported because no price sheet was available; the loop reports "n/a" rather than a guess.</p>
+
+  <h3>Run B — adversarial run: 40% of VA's training labels flipped</h3>
+  <p>Same start, same exam, same agent — but the VA hospital's <em>training</em> rows carry 40% label noise (test rows untouched; documented in the config, the run header, every metrics row and every report section; the agent is not told). Nine rounds; best <b>82.7%</b>; stopped by the plateau rule (three moves in a row with no gain).</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Round</th><th>Data · model</th><th>Score</th><th>Δ</th><th>Train / gap</th><th>Move (how sure)</th></tr></thead>
+    <tbody>
+      <tr><td class="num">0</td><td>Switzerland · kNN</td><td class="num">55.1%</td><td class="num">—</td><td class="num">93.9% / +0.387</td><td>unlock Cleveland (82%)</td></tr>
+      <tr><td class="num">1</td><td>+Cleveland · kNN</td><td class="num">72.4%</td><td class="num">+17.3</td><td class="num">80.9% / +0.084</td><td>unlock VA (85%) — <em>the poisoned site</em></td></tr>
+      <tr><td class="num">2</td><td>+VA (noisy) · kNN</td><td class="num">68.6%</td><td class="num"><b>−3.8</b></td><td class="num">76.2% / +0.076</td><td>switch to random forest (53%)</td></tr>
+      <tr><td class="num">3</td><td>same · random forest</td><td class="num">80.5%</td><td class="num">+11.9</td><td class="num">100% / +0.195</td><td>tune: shallower trees (46%)</td></tr>
+      <tr><td class="num">4</td><td>same · RF regularised</td><td class="num">81.6%</td><td class="num">+1.1</td><td class="num">79.6% / −0.020</td><td>tune: more capacity (81%)</td></tr>
+      <tr><td class="num">5</td><td>same · RF 500 trees</td><td class="num">82.7%</td><td class="num">+1.1</td><td class="num">86.8% / +0.041</td><td>tune: balanced classes (73%)</td></tr>
+      <tr><td class="num">6</td><td>same · RF balanced</td><td class="num">81.1%</td><td class="num">−1.6</td><td class="num">88.6% / +0.075</td><td>switch to logistic regression (74%)</td></tr>
+      <tr><td class="num">7</td><td>same · logistic regression</td><td class="num">81.1%</td><td class="num">0.0</td><td class="num">77.0% / −0.041</td><td><b>gate fired</b> (36%) → second opinion: accept "switch back to random forest"</td></tr>
+      <tr><td class="num">8</td><td>same · random forest</td><td class="num">80.5%</td><td class="num">−0.5</td><td class="num">100% / +0.195</td><td>switch to SVM (58%) — then plateau stop</td></tr>
+    </tbody>
+  </table></div>
+  <figure><img src="shots/chart-poison.png" alt="Accuracy per round for the poisoned run: a dip after adding VA, recovery to about 82%, then a plateau below the target."><figcaption>The dip at round 2 is the poisoned acquisition. The recovery comes from model choice, not data; the run never climbs past 82.7%.</figcaption></figure>
+  <p><b>What the agent got right.</b> Its own ledger recorded VA as the only acquisition that ever hurt (−3.8 pts), and the diagnosis in round 2 said so in words: <em>"Adding the VA site data caused a performance drop (0.724 → 0.686, see trace 01a09bc9-28d7…)"</em>. Its confidence dropped from 85% to 53% on the very next decision. Settings it had already tried were withdrawn from its options, so the tuning sequence in rounds 3–5 never repeated itself. When it ran out of good ideas it stopped rather than pretend.</p>
+  <p><b>What it got wrong.</b> It never unlocked Hungary — the one clean hospital left — and instead spent six rounds tuning and switching models around the noisy data. Model families are only <em>marked</em> as tried, not withdrawn (revisiting one can be legitimate after the data changes), so it went back to random forest twice. A stronger agent would have treated "the last acquisition hurt" as a reason to try the other acquisition, not to stop acquiring.</p>
 
   <h3>Which decision-maker decides better? A Weave evaluation</h3>
-  <p>The same 9 recorded diagnoses were replayed through three decision heads. For each proposed move we re-applied it to the recorded state, retrained on the same fixed split and measured the real change in held-out accuracy.</p>
+  <p>The nine recorded diagnoses of Run B were replayed through three decision heads inside a <code>weave.Evaluation</code>, so the comparison lives next to the runs in Weave. Each proposed move was scored by actually applying it: rebuild the recorded state, apply the move, retrain on the same fixed split, measure the change in held-out accuracy.</p>
   <div class="tbl"><table>
     <thead><tr><th>Head</th><th>Valid typed action</th><th>Agrees with the live run</th><th>Mean counterfactual Δ accuracy</th><th>Mean latency</th><th>Mean tokens</th></tr></thead>
     <tbody>
@@ -171,7 +218,16 @@
       <tr><td>W&amp;B Inference gpt-oss-120b</td><td class="num">9/9</td><td class="num">5/9</td><td class="num">+0.038</td><td class="num">7.19 s</td><td class="num">2,482</td></tr>
     </tbody>
   </table></div>
-  <p class="note">Honest read: with nine samples the accuracy differences are noise, and a rule baseline is competitive on a toy dataset. What is not noise: the structured head is ~20× faster than the reasoning model at the same token cost and gives a probability on every option, which the loop uses as a gate. No dollar figures are shown because no price sheet was available — the code reports "n/a" rather than a guess.</p>
+  <p><b>Scorers.</b> <em>Valid typed action</em>: the head itself produced a pydantic-valid action without falling back (the script prints a warning if any head silently degrades to the rules — an earlier version of this table was wrong for exactly that reason, and was corrected). <em>Agrees with the live run</em>: same kind of move the live loop took (Jev made those decisions, so 8/9 is expected consistency, not superiority). <em>Counterfactual Δ</em>: the real held-out change from applying the proposed move. <em>Latency</em> and <em>tokens</em>: per decision.</p>
+  <p class="note"><b>Honest read.</b> With nine samples the Δ differences are within noise; on a small tabular problem a rule-based baseline is competitive. What is not noise: the structured head is ~20× faster than the reasoning model at the same token cost, never needs a parse-and-retry loop, and gives a calibrated probability on every option — which is what makes the confidence gate possible at all.</p>
+
+  <h3>Run-to-run variation and limitations</h3>
+  <ul style="max-width:80ch">
+    <li><b>Variance.</b> The diagnosis runs at temperature 0.2 and Jev's choices are probabilistic, so clean runs beat the target in 4 to 8 rounds by different routes (an Inference-decided run reached 85.4% in 4; a TypeSafe-decided run 85.9% in 8; the run above 87.0% in 6). Some poisoned runs also beat the target when a strong model masks the noise.</li>
+    <li><b>Cross-run memory.</b> The agent reads the whole Weave project, so it remembers earlier runs — useful (it knows logistic regression peaked at 0.849 before) and confounding (round 3's critique cited a Hungary attempt from another run). Scoping history to the current run is a one-line change; leaving it project-wide was a deliberate choice for the demo, and it is disclosed here.</li>
+    <li><b>Small n everywhere.</b> Nine decisions per run, one exam of 185 patients. A ±2-point swing is inside the noise of that exam.</li>
+    <li><b>The dataset is a toy.</b> The contribution is the loop — typed actions, binding memory, calibrated uncertainty gating a second opinion, and total observability — not the heart-disease number.</li>
+  </ul>
 
   <h2 id="honesty">Rules we never break</h2>
   <div class="rules">
