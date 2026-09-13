@@ -28,3 +28,6 @@ reset:            ## wipe agent-written notebook cells + run metrics for a fresh
 
 compare:          ## three-way action-head leaderboard in Weave (TypeSafe / Inference / rules)
 	$(PY) scripts/compare_action_heads.py
+
+demo3d:           ## embed the latest run into the 3D loop theatre and open it
+	$(PY) scripts/embed_run.py runs/latest.jsonl && open demo/loop3d.html

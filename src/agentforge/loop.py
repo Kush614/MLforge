@@ -152,6 +152,7 @@ def run_iteration(state: LoopState, cfg: dict, dry_run: bool = False,
                            "evidence_tags": d.get("evidence_tags", []),
                            "history_source": d.get("history_source"), "stop": None,
                            "accounting": acct, "jev_confidence": ts["confidence"] if ts else None,
+                           "jev_probabilities": ts["probabilities"] if ts else None,
                            "escalation": {k: escalation[k] for k in ("verdict", "critique")} if escalation else None,
                            # recorded so scripts/compare_action_heads.py can replay the decision
                            "diagnosis": d, "decision_context": {
