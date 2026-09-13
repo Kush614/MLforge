@@ -100,6 +100,7 @@ def run_iteration(state: LoopState, cfg: dict, dry_run: bool = False,
                                    [decision["action"]["action"]["site"]] if decision["action"]["action"]["kind"] == "acquire_data" else []),
                                "model_family": common_extra["model_family"],
                                "feature_ops": common_extra["feature_ops"],
+                               "hyperparams": dict(state.hyperparams) if decision["action"]["action"]["kind"] != "tune_hyperparams" else None,
                                "tried_families": list(state.tried_families),
                                "history_summary": hist["summary"]}})
     stop = "plateau" if state.plateaued(3) else None
