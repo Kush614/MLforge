@@ -68,7 +68,7 @@
 </head>
 <body>
 <div class="wrap">
-  <nav><b>AgentForge</b><a href="/">console</a><a href="#loop">how it works</a><a href="#sponsors">sponsors</a><a href="#results">results</a><a href="#honesty">honesty</a><span class="sp"></span><span class="mono">CoreWeave Hacks · Sep 12–13, 2026</span></nav>
+  <nav><b>AgentForge</b><a href="/">console</a><a href="#loop">how it works</a><a href="#sponsors">sponsors</a><a href="#results">results</a><a href="#findings">findings</a><a href="#honesty">honesty</a><span class="sp"></span><span class="mono">CoreWeave Hacks · Sep 12–13, 2026</span></nav>
 
   <header class="hero">
     <div>
@@ -228,6 +228,20 @@
     <li><b>Small n everywhere.</b> Nine decisions per run, one exam of 185 patients. A ±2-point swing is inside the noise of that exam.</li>
     <li><b>The dataset is a toy.</b> The contribution is the loop — typed actions, binding memory, calibrated uncertainty gating a second opinion, and total observability — not the heart-disease number.</li>
   </ul>
+
+  <h2 id="findings">Findings, briefly</h2>
+  <div class="rules" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+    <div class="rule"><b>1 · It gets there on its own evidence.</b>Starting blind at 55.1% with one skewed hospital and the wrong model, the agent reached 87.0% in six rounds — above the 85% target, above the 78.7–83.3% published range, and within a point of the best hand-picked configuration (88.1%).</div>
+    <div class="rule"><b>2 · Data first, model second — learned, not told.</b>In every clean run the first two moves were acquisitions, and the largest single gains came from unlocking a hospital (+17.3, +15.7 pts). Nobody encoded "get data before tuning"; it read it off its own ledger.</div>
+    <div class="rule"><b>3 · Calibrated uncertainty is useful control signal.</b>The structured head's confidence fell to 21% exactly when two moves in a row had failed. Gating on that and asking for a second opinion produced the run's best move (+15.7 pts). Confidence tracked trouble in the poisoned run too (85% → 53%).</div>
+    <div class="rule"><b>4 · Memory works — and needs scoping.</b>Diagnoses cited 2–5 earlier Weave traces each; in the poisoned run the agent named the harmful acquisition and its trace ID in words. But memory spans the whole project, so one critique mixed in a fact from a previous run. Feature and confound in the same mechanism.</div>
+    <div class="rule"><b>5 · Binding memory beats advisory memory.</b>Withdrawing already-tried settings from the options ended a +0.114/−0.114 preset oscillation. Families are still only marked, and the agent duly re-tried one twice — the gap between the two behaviours is visible in the tables.</div>
+    <div class="rule"><b>6 · The fast head is not the smart head, and doesn't need to be.</b>On nine replayed decisions, rules (+0.054), TypeSafe (+0.046) and the reasoning model (+0.038) are within noise of each other on outcome; TypeSafe is ~20× faster at equal tokens and gives probabilities. The right architecture is fast structured reflexes with a slow reasoner on call — which is what the gate is.</div>
+  </div>
+
+  <h3>Summary</h3>
+  <p>AgentForge is a closed train → score → diagnose → decide loop whose every step is a typed, traced, measurable event. Two LLMs share the work by strength: a reasoning model explains and, when asked, arbitrates; a structured-decision model picks one move in a third of a second with a probability on each option. The agent's memory is its own trace history, and the memory is binding — options shown useless disappear. On a deliberately small problem it goes from a majority-class guess to 87% without a human, and when we poison a data source it notices from its own results, hedges, and stops rather than pretend. What is stubbed is stated: the ARIA code-fix path is built but has not executed a live fix, and history is project-wide by choice.</p>
+  <p class="note">If you take one thing away: the interesting part is not that the number went up. It is that you can click any round and see exactly why it went up — the evidence, the diagnosis, the probabilities, the override — and that the same machinery told us when it was stuck.</p>
 
   <h2 id="honesty">Rules we never break</h2>
   <div class="rules">
