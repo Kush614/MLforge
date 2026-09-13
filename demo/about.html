@@ -68,7 +68,7 @@
 </head>
 <body>
 <div class="wrap">
-  <nav><b>AgentForge</b><a href="/">console</a><a href="#loop">how it works</a><a href="#sponsors">sponsors</a><a href="#results">results</a><a href="#findings">findings</a><a href="#honesty">honesty</a><span class="sp"></span><span class="mono">CoreWeave Hacks · Sep 12–13, 2026</span></nav>
+  <nav><b>AgentForge</b><a href="/">console</a><a href="#simple">in simple words</a><a href="#loop">how it works</a><a href="#sponsors">sponsors</a><a href="#results">results</a><a href="#findings">findings</a><a href="#honesty">honesty</a><span class="sp"></span><span class="mono">CoreWeave Hacks · Sep 12–13, 2026</span></nav>
 
   <header class="hero">
     <div>
@@ -79,6 +79,31 @@
     </div>
     <figure style="margin:0"><img src="shots/console-round3-decision.png" alt="The AgentForge console: a flowchart of the loop, a plain-language caption, the accuracy chart, and a transcript of every function call."><figcaption>The live console during a replayed run: the loop on top, a plain-language caption of what the agent just did, the score round by round, and the transcript of real function calls on the right.</figcaption></figure>
   </header>
+
+  <h2 id="simple">In simple words</h2>
+  <p>Imagine a student taking the same exam over and over. Between attempts they have to decide <em>how</em> to study better — read more material, change their method, or fix a bad habit. Usually a teacher decides that. Here, the student decides for themselves, and keeps a diary of why.</p>
+  <p>The "student" is a program trying to predict heart disease from patient measurements.</p>
+  <div class="rules" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+    <div class="rule"><b>The exam never changes.</b>We set aside 185 patients as the test. The program never sees their answers, so every score is fair and comparable.</div>
+    <div class="rule"><b>It starts badly on purpose.</b>It only gets one small hospital where almost everyone is sick, so its first model just guesses "everyone's sick" and scores 55%. The goal is 85%.</div>
+  </div>
+  <p style="margin-top:18px">Each round it does four things:</p>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><b>Train</b><span>Build a model with whatever data and method it has right now.</span></div>
+    <div class="step"><div class="n">2</div><b>Score</b><span>Take the exam.</span></div>
+    <div class="step"><div class="n">3</div><b>Diagnose</b><span>An AI reads the score <em>and its own notes from earlier rounds</em> and writes a short explanation: "you're memorising", "you need more data", "you're stuck".</span></div>
+    <div class="step"><div class="n">4</div><b>Decide</b><span>A second, much faster AI picks exactly one move from a fixed menu — unlock another hospital's data, change the model type, reshape the inputs, tune a setting, or ask an engineer for a code change — and says how sure it is.</span></div>
+  </div>
+  <p>Then it applies the move and goes again, until it beats 85% or admits it is stuck.</p>
+  <h3>Three things that make it more than a gimmick</h3>
+  <div class="rules">
+    <div class="rule"><b>It has a real memory.</b>Every round is recorded in Weave. Before diagnosing, it reads its own past rounds and quotes them. Moves it already tried that didn't help are removed from its menu.</div>
+    <div class="rule"><b>It knows when it doesn't know.</b>If the fast AI is less than 40% sure, the program asks the slower "thinking" AI for a second opinion, which can overrule it. In our best run that overrule produced the biggest jump of the whole run.</div>
+    <div class="rule"><b>It's honest.</b>We secretly corrupted one hospital's data. The program noticed its score fell after adding it, wrote that down, grew less confident, and eventually stopped rather than pretend. If any tool fails, the log says so.</div>
+  </div>
+  <p style="margin-top:18px"><b>Result:</b> on its own, it went from 55% to <b>87%</b> in six rounds — better than the published score for this dataset, and almost as good as a human expert hand-tuning the model.</p>
+  <p><b>What you see on screen</b> is a diagram of that loop with a dot moving between the steps, hospitals lighting up as they are unlocked, a gauge climbing toward the target, and one plain-English sentence per step, like <em>"It scored 69.2% — that's 0.5 points worse than last round. It's only 21% sure what to do next, so it's asking for a second opinion."</em></p>
+  <p class="note">The real point isn't that the number went up. It's that you can click any round and see exactly <em>why</em> it went up — and the same machinery tells you when it's stuck.</p>
 
   <h2 id="loop">How the loop works</h2>
   <p>The task is deliberately small so the <em>loop</em> is the star: predict heart disease from 13 patient measurements, using public, anonymised data from four hospitals. A fixed 20% of every hospital is held out as the exam and never trained on. The agent starts with only the smallest, most skewed hospital (Switzerland, 123 patients, 93% positive) — where a model scores 55% by guessing "everyone is sick" — and must earn its way to 85%.</p>
