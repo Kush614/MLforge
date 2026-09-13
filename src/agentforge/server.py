@@ -242,6 +242,30 @@ async def sse():
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
+@app.get("/api/source")
+def source():
+    """The real code of the loop's traced functions, so the console shows what is running."""
+    import inspect
+    from . import train as train_mod, evaluate as eval_mod, history as hist_mod, diagnose as diag_mod
+    from . import typesafe_client as ts_mod, act as act_mod, loop as loop_mod
+    funcs = {
+        "train": train_mod.train, "evaluate": eval_mod.evaluate, "build_history": hist_mod.build_history,
+        "diagnose": diag_mod.diagnose, "decide_action": ts_mod.decide_action, "typesafe_decide": ts_mod.typesafe_decide,
+        "second_opinion": ts_mod.second_opinion, "act": act_mod.act, "run_iteration": loop_mod.run_iteration,
+    }
+    out = {}
+    for name, fn in funcs.items():
+        raw = getattr(fn, "resolve_fn", None) or getattr(fn, "__wrapped__", None) or fn   # unwrap weave.op
+        try:
+            src, start = inspect.getsourcelines(raw)
+            path = Path(inspect.getsourcefile(raw)).resolve()
+            out[name] = {"file": str(path.relative_to(ROOT)) if ROOT in path.parents else str(path),
+                         "line": start, "source": "".join(src)}
+        except Exception as e:
+            out[name] = {"file": "?", "line": 0, "source": f"# source unavailable: {type(e).__name__}"}
+    return out
+
+
 @app.get("/demo/{path:path}")
 def demo_static(path: str):
     p = (DEMO_DIR / path).resolve()

@@ -5,443 +5,416 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AgentForge Console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap">
 <style>
+  /* Codex-style: near-black, hairline borders, monospace where the machine speaks, one green. */
   :root {
-    --bg: #f6f7f9; --surface: #ffffff; --surface-2: #eef0f4; --border: #e3e6ec; --border-strong: #c9ced8;
-    --ink: #14171f; --ink-2: #4b5363; --ink-3: #8a91a0;
-    --accent: #4f63e6; --accent-soft: #e8ebfc; --good: #1f8f66; --good-soft: #e3f4ec; --bad: #d3453f; --bad-soft: #fbe8e7; --warn: #b7791f;
-    --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-    --bg: #0f1115; --surface: #161920; --surface-2: #1d212a; --border: #262b36; --border-strong: #3a4150;
-    --ink: #eceff4; --ink-2: #aeb5c2; --ink-3: #6f7787;
-    --accent: #7b8cf0; --accent-soft: #232842; --good: #3cbf8a; --good-soft: #163126; --bad: #f0665f; --bad-soft: #3a1f1e; --warn: #d9a441;
-  } }
-  :root[data-theme="dark"] {
-    --bg: #0f1115; --surface: #161920; --surface-2: #1d212a; --border: #262b36; --border-strong: #3a4150;
-    --ink: #eceff4; --ink-2: #aeb5c2; --ink-3: #6f7787;
-    --accent: #7b8cf0; --accent-soft: #232842; --good: #3cbf8a; --good-soft: #163126; --bad: #f0665f; --bad-soft: #3a1f1e; --warn: #d9a441;
+    --bg: #0a0a0a; --panel: #111111; --panel-2: #171717; --raised: #1c1c1c; --border: #262626; --border-2: #333333;
+    --ink: #ececec; --ink-2: #a3a3a3; --ink-3: #6b6b6b;
+    --green: #10a37f; --green-soft: rgba(16,163,127,.14); --red: #ef6461; --red-soft: rgba(239,100,97,.14); --amber: #d7a33a; --blue: #7aa2f7;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.45; padding-inline: 20px; padding-block: 0 24px; }
-  a { color: var(--accent); }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 13px; line-height: 1.5; overflow: hidden; }
+  .app { display: grid; grid-template-columns: 236px minmax(0, 1fr) minmax(360px, 42%); height: 100vh; }
+  @media (max-width: 1100px) { .app { grid-template-columns: 200px minmax(0, 1fr); } .code { display: none; } }
+  @media (max-width: 760px) { body { overflow: auto; } .app { grid-template-columns: 1fr; height: auto; } .side { border-right: 0; border-bottom: 1px solid var(--border); } }
 
-  header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding-block: 14px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
-  h1 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
-  .dot.live { background: var(--good); box-shadow: 0 0 0 4px var(--good-soft); }
-  .status { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
-  .spacer { flex: 1; }
-  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  button, select, input[type=number] { font: inherit; font-size: 13px; color: var(--ink); background: var(--surface); border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 12px; }
-  button { cursor: pointer; } button:hover { border-color: var(--ink-3); }
-  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
-  button.primary:disabled { opacity: .5; cursor: default; }
-  button.quiet { border-color: transparent; background: transparent; color: var(--ink-2); }
-  input[type=number] { width: 68px; font-family: var(--mono); }
-  label.inline { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+  /* ---------- sidebar ---------- */
+  .side { border-right: 1px solid var(--border); background: var(--panel); display: flex; flex-direction: column; min-height: 0; }
+  .side .top { padding: 14px 14px 10px; border-bottom: 1px solid var(--border); }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; }
+  .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+  .brand .dot.live { background: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+  .brand small { font-weight: 400; color: var(--ink-3); font-family: var(--mono); font-size: 11px; margin-left: auto; }
+  .side h3 { margin: 0; padding: 12px 14px 6px; font-size: 11px; font-weight: 500; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+  .runs { overflow: auto; flex: 1; min-height: 80px; }
+  .run { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 8px 14px; cursor: pointer; border-left: 2px solid transparent; }
+  .run:hover { background: var(--panel-2); } .run.sel { background: var(--panel-2); border-left-color: var(--green); }
+  .run .n { font-family: var(--mono); font-size: 11.5px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .run .a { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .run .a.hit { color: var(--green); }
+  .run .m { grid-column: 1 / -1; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); }
+  .ledger { padding: 0 14px 12px; font-family: var(--mono); font-size: 11px; }
+  .ledger div { display: grid; grid-template-columns: 18px 1fr 50px; gap: 6px; padding: 3px 0; color: var(--ink-2); border-bottom: 1px solid var(--border); }
+  .ledger div span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  .ledger .up span:last-child { color: var(--green); } .ledger .down span:last-child { color: var(--red); }
+  .ledger .empty { color: var(--ink-3); border: 0; display: block; }
+  .cockpit { border-top: 1px solid var(--border); padding: 10px 14px 14px; display: grid; gap: 8px; }
+  .cockpit label { display: grid; gap: 4px; font-size: 11.5px; color: var(--ink-2); }
+  .cockpit .chk { display: flex; gap: 8px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; }
+  .cockpit .chk label { display: flex; flex-direction: row; align-items: center; gap: 4px; }
+  .cockpit .st { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); overflow-wrap: anywhere; }
 
-  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 372px; gap: 16px; align-items: start; }
-  .col { display: grid; gap: 16px; min-width: 0; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; min-width: 0; }
-  .card h2 { margin: 0 0 12px; font-size: 12px; font-weight: 500; color: var(--ink-3); letter-spacing: .02em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
-  .card h2 .r { margin-left: auto; text-transform: none; letter-spacing: 0; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+  /* ---------- center: transcript ---------- */
+  .main { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .bar { display: flex; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
+  .bar .r { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .phases { display: flex; gap: 2px; }
+  .phases span { padding: 3px 8px; border-radius: 4px; color: var(--ink-3); }
+  .phases span.done { color: var(--ink-2); } .phases span.on { color: var(--green); background: var(--green-soft); }
+  .transcript { flex: 1; overflow: auto; padding: 18px 18px 8px; scroll-behavior: smooth; }
+  .chart-wrap { border: 1px solid var(--border); border-radius: 8px; background: var(--panel); padding: 10px 12px 6px; margin-bottom: 18px; }
+  .chart-wrap .h { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-bottom: 4px; }
+  svg.chart { width: 100%; height: 140px; display: block; overflow: visible; }
+  .chart text { font-family: var(--mono); font-size: 10px; fill: var(--ink-3); }
+  .chart .grid line { stroke: var(--border); } .chart .acc { fill: none; stroke: var(--green); stroke-width: 1.6; }
+  .chart .train { fill: none; stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 3; }
+  .chart .target { stroke: var(--amber); stroke-dasharray: 4 4; } .chart .base { stroke: var(--ink-3); stroke-dasharray: 1 3; }
+  .chart circle { fill: var(--bg); stroke: var(--green); stroke-width: 1.6; } .chart circle.hit { fill: var(--green); }
+  .iter { margin-bottom: 20px; }
+  .iter > .h { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-bottom: 8px; }
+  .iter > .h b { color: var(--ink); font-weight: 600; }
+  .iter > .h .pill { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--panel-2); color: var(--ink-2); border: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  .iter > .h .pill.up { color: var(--green); border-color: rgba(16,163,127,.4); } .iter > .h .pill.down { color: var(--red); border-color: rgba(239,100,97,.4); }
+  .call { display: grid; grid-template-columns: 18px 1fr; gap: 0 8px; padding: 7px 10px; border-left: 2px solid var(--border); margin-left: 6px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+  .call.on { border-left-color: var(--green); background: linear-gradient(90deg, var(--green-soft), transparent 60%); }
+  .call.on .ic { color: var(--green); }
+  .call .ic { color: var(--ink-3); } .call .fn { color: var(--ink); }
+  .call .arg { color: var(--ink-3); } .call .kw { color: var(--blue); } .call .str { color: var(--amber); }
+  .call .ret { grid-column: 2; margin-top: 3px; color: var(--ink-2); overflow-wrap: anywhere; }
+  .call .ret .ok { color: var(--green); } .call .ret .bad { color: var(--red); }
+  .call .ret .cur { display: inline-block; width: 6px; height: 11px; background: var(--green); vertical-align: -1px; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .call .say { grid-column: 2; margin-top: 6px; font-family: var(--sans); font-size: 13px; color: var(--ink); max-width: 70ch; border-left: 2px solid var(--border-2); padding-left: 10px; }
+  .tags { display: inline-flex; gap: 5px; margin-left: 6px; vertical-align: middle; }
+  .tag { font-size: 10.5px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border-2); color: var(--ink-2); }
+  .probs { grid-column: 2; margin-top: 6px; display: grid; gap: 3px; max-width: 420px; }
+  .prob { display: grid; grid-template-columns: 130px 1fr 34px; gap: 8px; align-items: center; font-size: 11px; color: var(--ink-3); }
+  .prob .t { height: 5px; background: var(--panel-2); border-radius: 2px; overflow: hidden; } .prob .t i { display: block; height: 100%; width: 0; background: var(--ink-3); transition: width .4s ease; }
+  .prob.top { color: var(--ink); } .prob.top .t i { background: var(--green); } .prob em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
+  .gate { grid-column: 2; margin-top: 6px; font-size: 11.5px; color: var(--amber); }
+  .gate q { color: var(--ink-2); font-family: var(--sans); }
+  .sys { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); padding: 4px 0 4px 16px; overflow-wrap: anywhere; }
+  .sys.hi { color: var(--ink-2); }
+  .sys.warn { color: var(--amber); }
+  .end { margin: 6px 0 14px 6px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); display: inline-block; }
+  .end.good { border-color: rgba(16,163,127,.5); color: var(--green); } .end.bad { border-color: rgba(239,100,97,.5); color: var(--red); }
+  .empty { color: var(--ink-3); padding: 40px 0; text-align: center; font-family: var(--mono); font-size: 12px; }
 
-  /* loop */
-  #stage { position: relative; height: 380px; border-radius: 8px; background: var(--surface-2); overflow: hidden; }
-  #stage canvas { display: block; width: 100%; height: 100%; }
-  .phases { position: absolute; top: 12px; left: 12px; display: flex; gap: 4px; }
-  .phases span { font-family: var(--mono); font-size: 11px; padding: 4px 9px; border-radius: 6px; color: var(--ink-3); background: transparent; }
-  .phases span.on { color: var(--accent); background: var(--surface); border: 1px solid var(--border); }
-  .phases span.done { color: var(--ink-2); }
-  .keys { position: absolute; bottom: 10px; left: 12px; display: flex; gap: 12px; font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); }
-  .keys i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
-  .replay { position: absolute; right: 12px; top: 12px; display: flex; gap: 6px; align-items: center; }
-  .replay button { padding: 4px 9px; font-size: 12px; border-radius: 6px; }
+  /* composer, like a prompt box */
+  .composer { border-top: 1px solid var(--border); padding: 12px 18px 14px; background: var(--panel); }
+  .box { border: 1px solid var(--border-2); border-radius: 10px; background: var(--bg); padding: 10px 12px; display: grid; gap: 10px; }
+  .box .line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+  .box .line .p { color: var(--green); }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border: 1px solid var(--border-2); border-radius: 999px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); background: var(--panel-2); }
+  .chip select, .chip input[type=number] { font: inherit; color: var(--ink); background: transparent; border: 0; padding: 0; outline: none; }
+  .chip input[type=number] { width: 34px; text-align: right; }
+  .chip input[type=checkbox] { margin: 0; accent-color: var(--green); }
+  button { font: inherit; font-size: 12px; color: var(--ink); background: var(--panel-2); border: 1px solid var(--border-2); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  button:hover { border-color: var(--ink-3); } button:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+  button.go { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 600; margin-left: auto; }
+  button.go:disabled { opacity: .45; cursor: default; }
+  button.stop { border-color: rgba(239,100,97,.5); color: var(--red); margin-left: auto; }
+  button.mini { padding: 3px 8px; font-size: 11px; border-radius: 6px; }
 
-  /* chart */
-  svg.chart { width: 100%; height: 220px; display: block; overflow: visible; }
-  .chart text { font-family: var(--mono); font-size: 10.5px; fill: var(--ink-3); }
-  .chart .grid line { stroke: var(--border); }
-  .chart .acc { fill: none; stroke: var(--accent); stroke-width: 2; }
-  .chart .train { fill: none; stroke: var(--ink-3); stroke-width: 1.2; stroke-dasharray: 2 3; }
-  .chart .target { stroke: var(--good); stroke-dasharray: 5 4; }
-  .chart .base { stroke: var(--ink-3); stroke-dasharray: 1 3; }
-  .chart circle { fill: var(--surface); stroke: var(--accent); stroke-width: 2; }
-  .chart circle.hit { fill: var(--good); stroke: var(--good); }
-  .chart circle.cur { r: 5; }
-  .chart .lbl { fill: var(--ink-2); }
-
-  /* iteration */
-  .big { display: flex; align-items: baseline; gap: 12px; }
-  .big .n { font-family: var(--mono); font-size: 44px; font-weight: 500; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
-  .big .n.hit { color: var(--good); }
-  .pill { font-family: var(--mono); font-size: 11.5px; padding: 3px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); font-variant-numeric: tabular-nums; }
-  .pill.up { background: var(--good-soft); color: var(--good); } .pill.down { background: var(--bad-soft); color: var(--bad); }
-  .pill.warn { background: #fdf3df; color: var(--warn); }
-  :root[data-theme="dark"] .pill.warn, :root:not([data-theme="light"]) .pill.warn { background: #3a2e14; }
-  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin-top: 12px; font-size: 12.5px; }
-  .kv dt { color: var(--ink-3); margin: 0; } .kv dd { margin: 0; font-family: var(--mono); font-size: 12px; color: var(--ink); overflow-wrap: anywhere; }
-  .bar { position: relative; height: 6px; background: var(--surface-2); border-radius: 3px; margin-top: 12px; }
-  .bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 3px; transition: width .5s ease; }
-  .bar .tgt { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--good); }
-  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-  .tag { font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
-  p.text { margin: 0; font-size: 13px; color: var(--ink); max-width: 60ch; min-height: 3em; }
-  p.text.muted { color: var(--ink-3); }
-  .meta { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 8px; overflow-wrap: anywhere; }
-  .meta b { color: var(--ink-2); font-weight: 500; }
-  .action { font-family: var(--mono); font-size: 12.5px; color: var(--ink); background: var(--surface-2); border-radius: 8px; padding: 8px 10px; overflow-wrap: anywhere; margin: 0 0 10px; }
-  .action.none { color: var(--ink-3); }
-  .probs { display: grid; gap: 5px; }
-  .prob { display: grid; grid-template-columns: 124px 1fr 36px; gap: 8px; align-items: center; font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
-  .prob .t { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
-  .prob .t i { display: block; height: 100%; width: 0; background: var(--ink-3); transition: width .4s ease; }
-  .prob.top { color: var(--ink); } .prob.top .t i { background: var(--accent); }
-  .prob em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
-  .gate { margin-top: 10px; padding: 8px 10px; border-radius: 8px; border: 1px dashed var(--border-strong); font-size: 12px; color: var(--ink-3); }
-  .gate.on { border-style: solid; border-color: var(--warn); color: var(--ink); background: transparent; }
-  .gate.on b { color: var(--warn); font-weight: 500; }
-  table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11.5px; }
-  th { text-align: left; font-weight: 500; color: var(--ink-3); padding: 0 0 6px; border-bottom: 1px solid var(--border); }
-  td { padding: 5px 0; border-bottom: 1px solid var(--border); color: var(--ink-2); vertical-align: top; }
-  td.num { text-align: right; font-variant-numeric: tabular-nums; }
-  td.up { color: var(--good); } td.down { color: var(--bad); } tr.now td { color: var(--ink); }
-  .log { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); background: var(--surface-2); border-radius: 8px; padding: 10px 12px; height: 200px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .log .l { padding: 1px 0; } .log .l.hi { color: var(--ink); }
-  .empty { color: var(--ink-3); font-size: 13px; }
-  .cockpit { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
-  .cockpit label { display: grid; gap: 4px; font-size: 12px; color: var(--ink-2); }
-  .cockpit .row { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .check { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); }
-  .check label { display: flex; align-items: center; gap: 4px; }
-  .banner { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: var(--bg); font-family: var(--mono); font-size: 12px; padding: 8px 14px; border-radius: 8px; opacity: 0; transition: opacity .25s; pointer-events: none; max-width: 90vw; }
-  .banner.show { opacity: 1; }
-  @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } #stage { height: 300px; } }
-  @media (prefers-reduced-motion: reduce) { .bar .fill, .prob .t i { transition: none; } }
+  /* ---------- right: the code that is running ---------- */
+  .code { border-left: 1px solid var(--border); background: var(--panel); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .code .tabs { display: flex; gap: 2px; padding: 8px 10px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .code .tabs button { padding: 4px 9px; font-family: var(--mono); font-size: 11px; border-radius: 6px; border-color: transparent; background: transparent; color: var(--ink-3); white-space: nowrap; }
+  .code .tabs button.sel { background: var(--panel-2); color: var(--ink); border-color: var(--border); }
+  .code .tabs button.run { color: var(--green); }
+  .code .tabs button.run::before { content: "● "; }
+  .code .file { font-family: var(--mono); font-size: 11px; color: var(--ink-3); padding: 6px 14px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; }
+  .code .file b { color: var(--ink-2); font-weight: 500; }
+  .code .file .st { margin-left: auto; color: var(--green); }
+  pre.src { margin: 0; flex: 1; overflow: auto; padding: 10px 0 24px; font-family: var(--mono); font-size: 11.5px; line-height: 1.55; color: var(--ink-2); tab-size: 4; }
+  pre.src .ln { display: grid; grid-template-columns: 44px 1fr; padding-right: 14px; }
+  pre.src .ln .n { color: var(--ink-3); text-align: right; padding-right: 12px; user-select: none; opacity: .7; }
+  pre.src .ln.hot { background: var(--green-soft); } pre.src .ln.hot .n { color: var(--green); opacity: 1; }
+  pre.src .ln.warm { background: rgba(16,163,127,.05); }
+  .k { color: #c792ea; } .s { color: var(--amber); } .c { color: var(--ink-3); font-style: italic; } .d { color: var(--green); } .f { color: var(--blue); } .num { color: #f78c6c; }
+  .code .out { border-top: 1px solid var(--border); padding: 8px 14px 12px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); max-height: 34%; overflow: auto; }
+  .code .out .h { color: var(--ink-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .code .out pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
+  .toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); background: var(--ink); color: var(--bg); font-family: var(--mono); font-size: 12px; padding: 7px 12px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .prob .t i { transition: none; } .call .ret .cur { animation: none; } .transcript { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
-<header>
-  <h1><span class="dot" id="dot"></span>AgentForge</h1>
-  <span class="status" id="status">connecting…</span>
-  <span class="spacer"></span>
-  <div class="controls">
-    <label class="inline" for="poison">poison <select id="poison"><option value="">none</option><option value="va">va · 40% label noise</option><option value="hungary">hungary · 40%</option><option value="cleveland">cleveland · 40%</option></select></label>
-    <label class="inline" for="iters">max iters <input type="number" id="iters" min="1" max="30" value="12"></label>
-    <label class="inline"><input type="checkbox" id="dry"> dry run</label>
-    <button class="primary" id="start">Start run</button>
-    <button id="stop" hidden>Stop after this iteration</button>
-    <select id="runs" title="replay a past run"><option value="">replay a past run…</option></select>
-  </div>
-</header>
-
-<div class="grid">
-  <div class="col">
-    <section class="card">
-      <h2>Loop <span class="r" id="loopMeta">train → evaluate → diagnose → act</span></h2>
-      <div id="stage">
-        <div class="phases" id="phases"><span>train</span><span>evaluate</span><span>diagnose</span><span>act</span></div>
-        <div class="replay" id="replayBar" hidden><button id="rPlay">pause</button><button id="rPrev">‹</button><button id="rNext">›</button><span class="status" id="rPos"></span></div>
-        <div class="keys"><span><i style="background:var(--accent)"></i>signal</span><span><i style="background:var(--ink-3)"></i>hospital site</span><span><i style="background:var(--good)"></i>target</span><span><i style="background:var(--bad)"></i>poison harm</span></div>
+<div class="app">
+  <!-- ================= sidebar ================= -->
+  <aside class="side">
+    <div class="top">
+      <div class="brand"><span class="dot" id="dot"></span>AgentForge<small id="tracing">—</small></div>
+      <div class="cockpit" style="border:0;padding:8px 0 0">
+        <div class="st" id="status">connecting…</div>
       </div>
-    </section>
-    <section class="card">
-      <h2>Held-out accuracy <span class="r" id="chartMeta"></span></h2>
-      <svg class="chart" id="chart" viewBox="0 0 720 220" preserveAspectRatio="none"></svg>
-    </section>
-    <section class="card">
-      <h2>Log <span class="r" id="logMeta"></span></h2>
-      <div class="log" id="log"><div class="empty">Start a run or replay a past one.</div></div>
-    </section>
-  </div>
+    </div>
+    <h3>Runs</h3>
+    <div class="runs" id="runs"><div class="sys">loading…</div></div>
+    <h3>Effect ledger</h3>
+    <div class="ledger" id="ledger"><span class="empty">no actions yet</span></div>
+    <div class="cockpit">
+      <h3 style="padding:0 0 2px">Cockpit</h3>
+      <label>target accuracy <input type="number" id="cTarget" step="0.01" min="0.5" max="0.99" placeholder="0.85" style="font:inherit;font-family:var(--mono);background:var(--bg);color:var(--ink);border:1px solid var(--border-2);border-radius:6px;padding:4px 8px"></label>
+      <label>freeze sites <span class="chk" id="cFreeze"></span></label>
+      <div style="display:flex;gap:6px;align-items:center"><button class="mini" id="cApply">apply</button><button class="mini" id="cClear">clear</button><span class="st" id="cState"></span></div>
+    </div>
+  </aside>
 
-  <div class="col">
-    <section class="card">
-      <h2 id="iterTitle">Iteration</h2>
-      <div class="big"><span class="n" id="acc">—</span><span class="pill" id="delta">no evaluation yet</span></div>
-      <div class="bar"><div class="fill" id="fill" style="width:0%"></div><div class="tgt" id="tgtMark" style="left:85%"></div></div>
-      <dl class="kv">
-        <dt>model</dt><dd id="model">—</dd>
-        <dt>sites</dt><dd id="sites">—</dd>
-        <dt>train rows</dt><dd id="nTrain">—</dd>
-        <dt>train / gap</dt><dd id="gap">—</dd>
-        <dt>features</dt><dd id="ops">—</dd>
-      </dl>
-    </section>
-    <section class="card">
-      <h2>Diagnosis <span class="r" id="diagMeta"></span></h2>
-      <div class="tags" id="tags"></div>
-      <p class="text muted" id="reason">Waiting for the first evaluation.</p>
-      <div class="meta" id="src"></div>
-    </section>
-    <section class="card">
-      <h2>Decision <span class="r" id="decMeta"></span></h2>
-      <p class="action none" id="action">—</p>
-      <div class="probs" id="probs"></div>
-      <div class="gate" id="gate">Confidence gate: below 0.40 the decision is sent for a second opinion.</div>
-      <div class="meta" id="cost"></div>
-    </section>
-    <section class="card">
-      <h2>Effect ledger <span class="r">same held-out split</span></h2>
-      <table><thead><tr><th>#</th><th>action</th><th style="text-align:right">Δ acc</th></tr></thead><tbody id="ledger"><tr><td colspan="3" class="empty">no actions yet</td></tr></tbody></table>
-    </section>
-    <section class="card">
-      <h2>Cockpit <span class="r">read by the loop each iteration</span></h2>
-      <div class="cockpit">
-        <label>target accuracy <input type="number" id="cTarget" step="0.01" min="0.5" max="0.99" placeholder="0.85"></label>
-        <label>freeze sites <span class="check" id="cFreeze"></span></label>
-        <div class="row"><button id="cApply">Apply</button><button class="quiet" id="cClear">Clear</button><span class="status" id="cState"></span></div>
+  <!-- ================= center ================= -->
+  <main class="main">
+    <div class="bar">
+      <span id="runTitle">no run selected</span>
+      <div class="phases" id="phases"><span>train</span><span>evaluate</span><span>diagnose</span><span>act</span></div>
+      <div class="r" id="replayBar" hidden><button class="mini" id="rPlay">pause</button><button class="mini" id="rPrev">‹</button><button class="mini" id="rNext">›</button><span id="rPos"></span></div>
+    </div>
+    <div class="transcript" id="transcript">
+      <div class="chart-wrap"><div class="h"><span>held-out accuracy · fixed split</span><span id="chartMeta"></span></div><svg class="chart" id="chart" viewBox="0 0 720 140" preserveAspectRatio="none"></svg></div>
+      <div id="feed"><div class="empty">Start a run below, or pick a past run to replay.</div></div>
+    </div>
+    <div class="composer">
+      <div class="box">
+        <div class="line"><span class="p">$</span> python -m agentforge.loop
+          <span class="chip"><input type="checkbox" id="poisonOn"> --poison <select id="poison"><option value="va">va</option><option value="hungary">hungary</option><option value="cleveland">cleveland</option></select></span>
+          <span class="chip">--iterations <input type="number" id="iters" min="1" max="30" value="12"></span>
+          <span class="chip"><input type="checkbox" id="dry"> --dry-run</span>
+          <button class="go" id="start">Run ↵</button>
+          <button class="stop" id="stop" hidden>stop after this iteration</button>
+        </div>
+        <div class="line" style="color:var(--ink-3);font-size:11px" id="hint">Runs stream here live over SSE. Every function you see executing on the right is the real code.</div>
       </div>
-    </section>
-  </div>
+    </div>
+  </main>
+
+  <!-- ================= right: code ================= -->
+  <section class="code">
+    <div class="tabs" id="tabs"></div>
+    <div class="file" id="file"><b>—</b></div>
+    <pre class="src" id="src"></pre>
+    <div class="out" id="out"><div class="h">return value</div><pre id="outv">—</pre></div>
+  </section>
 </div>
-<div class="banner" id="banner"></div>
+<div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
   const PHASES = ["train", "evaluate", "diagnose", "act"];
-  const SITE_ORDER = ["switzerland", "hungary", "va", "cleveland"];
-  const SITE_ROWS = { switzerland: 123, hungary: 294, va: 200, cleveland: 303 };
+  const PHASE_FN = { train: "train", evaluate: "evaluate", diagnose: "diagnose", act: "decide_action" };
   const sign = v => (v > 0 ? "+" : "") + v.toFixed(3);
   const kind = a => (a || "").split("(")[0];
   const arg = a => { const m = /\{'(?:site|family|op)': '([^']+)'/.exec(a || ""); return m ? m[1] : (a || "").replace(/^[^(]*\(/, "").replace(/\)$/, ""); };
-  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  const banner = (t) => { const b = $("banner"); b.textContent = t; b.classList.add("show"); clearTimeout(banner.tm); banner.tm = setTimeout(() => b.classList.remove("show"), 2800); };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const toast = t => { const b = $("toast"); b.textContent = t; b.classList.add("show"); clearTimeout(toast.tm); toast.tm = setTimeout(() => b.classList.remove("show"), 2600); };
 
-  // ------------------------------------------------------------ state
-  const S = { mode: "idle", run: null, rows: [], live: null, phase: -1, iteration: 0, partial: {}, target: 0.85, sites: SITE_ORDER, initialSite: "switzerland", poison: null, badSites: new Set(), log: [] };
+  const S = { mode: "idle", run: null, rows: [], target: 0.85, initialSite: "switzerland", phase: -1, iteration: -1, phaseStart: 0, source: {}, tab: "run_iteration", follow: true, live: {} };
 
-  // ------------------------------------------------------------ 3D loop (quiet)
-  const stage = $("stage");
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setClearColor(0x000000, 0);
-  stage.appendChild(renderer.domElement);
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-  scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-  const dl = new THREE.DirectionalLight(0xffffff, 0.5); dl.position.set(4, 8, 6); scene.add(dl);
-  const col = name => new THREE.Color(css(name));
-  const mats = {};
-  const rebuildColors = () => {
-    mats.accent = col("--accent"); mats.ink3 = col("--ink-3"); mats.border = col("--border-strong"); mats.good = col("--good"); mats.bad = col("--bad"); mats.surface = col("--surface");
-    ring.material.color.copy(mats.border); pulse.material.color.copy(mats.accent);
-    nodes.forEach(n => { n.mesh.material.color.copy(mats.surface); n.edge.material.color.copy(mats.border); });
-    colFill.material.color.copy(mats.accent); colFrame.material.color.copy(mats.border); targetRing.material.color.copy(mats.good); baseRing.material.color.copy(mats.border);
-    plates.forEach(p => p.material.color.copy(mats.accent)); threads.forEach(l => l.material.color.copy(mats.accent));
-    SITE_ORDER.forEach(s => { cells[s].edge.material.color.copy(mats.border); });
-  };
-  const R = 3.4, FLOOR = -1.6;
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(R, 0.018, 8, 160), new THREE.MeshBasicMaterial({ color: 0x888888 })); ring.rotation.x = Math.PI / 2; scene.add(ring);
-  const angleOf = k => Math.PI / 2 - k * Math.PI / 2;
-  const posOf = k => new THREE.Vector3(Math.cos(angleOf(k)) * R, 0, -Math.sin(angleOf(k)) * R);
-  const textSprite = (text, colorVar, px = 40) => { const c = document.createElement("canvas"); c.width = 512; c.height = 96; const g = c.getContext("2d"); g.font = `500 ${px}px "Geist Mono", monospace`; g.fillStyle = css(colorVar); g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(text, 256, 48); const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); s.scale.set(2.4, 0.45, 1); return s; };
-  const nodes = PHASES.map((n, k) => {
-    const g = new THREE.Group(); g.position.copy(posOf(k));
-    const geo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
-    const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: 0xffffff }));
-    const edge = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0x888888 }));
-    mesh.add(edge); const lbl = textSprite(n + "()", "--ink-2"); lbl.position.y = 0.85; g.add(mesh, lbl); scene.add(g);
-    return { g, mesh, edge, lbl };
-  });
-  const pulse = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 16), new THREE.MeshBasicMaterial({ color: 0x4f63e6 })); scene.add(pulse);
-  let pulseAngle = angleOf(0);
-  // hospital cells
-  const cells = {};
-  SITE_ORDER.forEach((s, i) => {
-    const h = 0.3 + SITE_ROWS[s] / 303 * 1.2; const geo = new THREE.BoxGeometry(0.55, h, 0.55);
-    const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: 0x888888, transparent: true, opacity: 0.35 }));
-    const edge = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0x888888 })); mesh.add(edge);
-    mesh.position.set(-6.2, FLOOR + h / 2, -1.6 + i * 1.1); scene.add(mesh);
-    const lbl = textSprite(s, "--ink-3", 34); lbl.position.set(-6.2, FLOOR + h + 0.45, mesh.position.z); lbl.scale.set(1.9, 0.36, 1); scene.add(lbl);
-    cells[s] = { mesh, edge, h, base: FLOOR + h / 2, lbl };
-  });
-  // memory plates
-  const plates = [], threads = [];
-  for (let i = 0; i < 24; i++) { const p = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.05, 0.8), new THREE.MeshBasicMaterial({ color: 0x4f63e6, transparent: true, opacity: 0 })); p.position.set(0.2, FLOOR + i * 0.13, -6.2); scene.add(p); plates.push(p); }
-  for (let i = 0; i < 6; i++) { const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: 0x4f63e6, transparent: true, opacity: 0 })); scene.add(l); threads.push(l); }
-  const memLbl = textSprite("weave traces", "--ink-3", 34); memLbl.position.set(0.2, 1.9, -6.2); memLbl.scale.set(2.2, 0.42, 1); scene.add(memLbl);
-  // accuracy column
-  const COL_H = 3.2, CX = 6.2;
-  const colFrame = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.7, COL_H, 0.7)), new THREE.LineBasicMaterial({ color: 0x888888 })); colFrame.position.set(CX, FLOOR + COL_H / 2, 0); scene.add(colFrame);
-  const colFill = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1, 0.5), new THREE.MeshBasicMaterial({ color: 0x4f63e6 })); colFill.scale.y = 0.001; colFill.position.set(CX, FLOOR, 0); scene.add(colFill);
-  const targetRing = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.02, 8, 48), new THREE.MeshBasicMaterial({ color: 0x1f8f66 })); targetRing.rotation.x = Math.PI / 2; targetRing.position.set(CX, FLOOR + 0.85 * COL_H, 0); scene.add(targetRing);
-  const baseRing = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.01, 6, 48), new THREE.MeshBasicMaterial({ color: 0x888888 })); baseRing.rotation.x = Math.PI / 2; baseRing.position.set(CX, FLOOR + 0.787 * COL_H, 0); scene.add(baseRing);
-  const accLbl = textSprite("accuracy", "--ink-3", 34); accLbl.position.set(CX, FLOOR + COL_H + 0.45, 0); accLbl.scale.set(1.9, 0.36, 1); scene.add(accLbl);
-  rebuildColors();
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => setTimeout(rebuildColors, 50));
-  new MutationObserver(() => setTimeout(rebuildColors, 50)).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-
-  let yaw = 0.5, pitch = 0.42, dist = 13.5, dragging = false, lx = 0, ly = 0;
-  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const el = renderer.domElement;
-  el.addEventListener("pointerdown", e => { dragging = true; lx = e.clientX; ly = e.clientY; el.setPointerCapture(e.pointerId); });
-  el.addEventListener("pointermove", e => { if (!dragging) return; yaw -= (e.clientX - lx) * 0.005; pitch = Math.max(0.1, Math.min(1.2, pitch + (e.clientY - ly) * 0.004)); lx = e.clientX; ly = e.clientY; });
-  el.addEventListener("pointerup", () => dragging = false);
-  const resize = () => { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); };
-  new ResizeObserver(resize).observe(stage); resize();
-  const lerp = (a, b, s) => a + (b - a) * s;
-  let last = performance.now(), accShown = 0;
-  function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    const k = S.phase, cur = S.rows[S.iteration - (S.partial.row ? 0 : 1)] || null;
-    // pulse eases toward the active station; sits at the last one when idle
-    const target = k >= 0 ? angleOf(k) : angleOf(0);
-    // stations sit at decreasing angles, so "forward" around the loop is a decreasing angle
-    let d = ((target - pulseAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-    const travel = d < 1e-6 || d > 2 * Math.PI - 1e-3 ? 0 : 2 * Math.PI - d;
-    pulseAngle -= Math.min(travel, dt * 2.4);
-    pulse.position.set(Math.cos(pulseAngle) * R, 0, -Math.sin(pulseAngle) * R);
-    nodes.forEach((n, j) => { const on = j === k; n.mesh.material.color.lerp(on ? mats.accent : mats.surface, 0.15); n.edge.material.color.copy(on ? mats.accent : mats.border); n.mesh.rotation.y += dt * (on ? 1.2 : 0.15); n.g.position.y = lerp(n.g.position.y, on ? 0.18 : 0, 0.12); });
-    const acquiredNow = new Set(S.partial.sites || (S.rows.length ? S.rows[S.rows.length - 1].sites : [S.initialSite]));
-    SITE_ORDER.forEach((s, i) => { const c = cells[s]; const lit = acquiredNow.has(s); const bad = S.badSites.has(s); c.mesh.material.color.lerp(bad ? mats.bad : lit ? mats.accent : mats.ink3, 0.1); c.mesh.material.opacity = lerp(c.mesh.material.opacity, lit ? 0.95 : 0.3, 0.1); c.edge.material.color.copy(lit ? (bad ? mats.bad : mats.accent) : mats.border); c.mesh.position.y = c.base + (lit ? Math.sin(now / 1200 + i) * 0.03 : 0); });
-    const nPlates = S.rows.length; plates.forEach((p, j) => { p.material.opacity = lerp(p.material.opacity, j < nPlates ? 0.85 : 0, 0.1); });
-    const dp = posOf(2);
-    threads.forEach((l, j) => { const idx = nPlates - 1 - j; const on = k === 2 && idx >= 0; l.material.opacity = lerp(l.material.opacity, on ? 0.55 : 0, 0.12); if (idx >= 0) { const a = l.geometry.attributes.position; a.setXYZ(0, plates[idx].position.x, plates[idx].position.y, plates[idx].position.z); a.setXYZ(1, dp.x, 0, dp.z); a.needsUpdate = true; } });
-    const accTarget = S.partial.accuracy ?? (S.rows.length ? S.rows[S.rows.length - 1].accuracy : 0);
-    accShown = lerp(accShown, accTarget, 0.08); colFill.scale.y = Math.max(0.001, accShown * COL_H); colFill.position.y = FLOOR + colFill.scale.y / 2;
-    colFill.material.color.copy(accShown >= S.target - 1e-6 && accTarget >= S.target ? mats.good : mats.accent);
-    targetRing.position.y = FLOOR + S.target * COL_H;
-    if (!reduced && !dragging) yaw += dt * 0.04;
-    camera.position.set(Math.sin(yaw) * Math.cos(pitch) * dist, Math.sin(pitch) * dist + 0.4, Math.cos(yaw) * Math.cos(pitch) * dist); camera.lookAt(0, -0.3, -0.8);
-    renderer.render(scene, camera); requestAnimationFrame(frame);
+  // ------------------------------------------------------------ code pane
+  const hl = line => esc(line)
+    .replace(/(#.*)$/, '<span class="c">$1</span>')
+    .replace(/(&quot;&quot;&quot;.*?&quot;&quot;&quot;|&quot;.*?&quot;|'.*?')/g, '<span class="s">$1</span>')
+    .replace(/^(\s*)(@[\w.]+)/, '$1<span class="d">$2</span>')
+    .replace(/\b(def|return|if|elif|else|for|in|not|and|or|is|None|True|False|import|from|as|with|try|except|raise|lambda|while|continue|break|pass|class)\b/g, '<span class="k">$1</span>')
+    .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="num">$1</span>')
+    .replace(/\b([a-zA-Z_]\w*)(?=\()/g, '<span class="f">$1</span>');
+  function renderTabs() {
+    const order = ["run_iteration", "train", "evaluate", "build_history", "diagnose", "decide_action", "typesafe_decide", "second_opinion", "act"];
+    const running = S.phase >= 0 ? PHASE_FN[PHASES[S.phase]] : null;
+    $("tabs").innerHTML = order.filter(k => S.source[k]).map(k => `<button data-k="${k}" class="${k === S.tab ? "sel" : ""}${k === running ? " run" : ""}">${k}()</button>`).join("");
+    [...$("tabs").children].forEach(b => b.onclick = () => { S.tab = b.dataset.k; S.follow = false; renderCode(); });
   }
-  requestAnimationFrame(frame);
+  function renderCode() {
+    const src = S.source[S.tab]; if (!src) return;
+    const running = S.phase >= 0 && PHASE_FN[PHASES[S.phase]] === S.tab;
+    $("file").innerHTML = `<b>${esc(src.file)}</b>:${src.line} <span>${S.tab}()</span>${running ? `<span class="st">● executing · iteration ${S.iteration}</span>` : ""}`;
+    const lines = src.source.replace(/\n$/, "").split("\n");
+    $("src").innerHTML = lines.map((l, i) => `<div class="ln" data-i="${i}"><span class="n">${src.line + i}</span><span>${hl(l) || " "}</span></div>`).join("");
+    renderTabs();
+  }
+  // a sweep highlight walks the executing function's body (we don't get line events, only phase events)
+  function sweep(now) {
+    const src = S.source[S.tab]; const running = S.phase >= 0 && PHASE_FN[PHASES[S.phase]] === S.tab;
+    const lns = $("src").children; const n = lns.length;
+    if (!running || !n) { for (const l of lns) l.className = "ln"; requestAnimationFrame(sweep); return; }
+    const t = (now - S.phaseStart) / 1000, body = Math.max(1, n - 2);
+    const pos = 2 + Math.floor((t * 6) % body);
+    for (let i = 0; i < n; i++) lns[i].className = "ln" + (i === pos ? " hot" : i >= 2 && i < pos ? " warm" : "");
+    requestAnimationFrame(sweep);
+  }
+  requestAnimationFrame(sweep);
+  const setOut = (label, value) => { $("out").querySelector(".h").textContent = label; $("outv").textContent = value; };
 
-  // ------------------------------------------------------------ rendering the panels
-  const setPhase = k => { S.phase = k; [...$("phases").children].forEach((s, j) => s.className = j === k ? "on" : (k >= 0 && j < k) ? "done" : ""); };
-  function renderIteration() {
-    const rows = S.rows, i = S.iteration, p = S.partial;
-    const row = rows.find(r => r.iteration === i) || null, prev = rows.find(r => r.iteration === i - 1) || null;
-    const acc = row ? row.accuracy : p.accuracy;
-    $("iterTitle").innerHTML = `Iteration ${i}${S.run ? ` <span class="r">${S.run}</span>` : ""}`;
-    const n = $("acc"); n.textContent = acc != null ? acc.toFixed(3) : "—"; n.className = "n" + (acc != null && acc >= S.target ? " hit" : "");
-    const dl = $("delta");
-    if (acc != null && prev) { const dv = acc - prev.accuracy; dl.textContent = `${sign(dv)} after ${kind(prev.action)}`; dl.className = "pill " + (dv > 0.001 ? "up" : dv < -0.001 ? "down" : ""); }
-    else if (acc != null) { dl.textContent = "first evaluation"; dl.className = "pill"; }
-    else { dl.textContent = S.phase === 0 ? "training…" : S.phase === 1 ? "evaluating…" : "no evaluation yet"; dl.className = "pill"; }
-    $("fill").style.width = ((acc ?? (prev ? prev.accuracy : 0)) * 100) + "%"; $("tgtMark").style.left = S.target * 100 + "%";
-    const st = row || p; $("model").textContent = st.model_family || st.model || "—"; $("sites").textContent = (st.sites || []).join(", ") || "—";
-    $("nTrain").textContent = row ? row.n_train : "—"; $("gap").textContent = row ? `${row.train_accuracy.toFixed(3)} / ${sign(row.gap)}` : "—"; $("ops").textContent = (st.feature_ops || []).join(", ") || "none";
-    const diag = row ? row.diagnosis : p.diagnosis;
-    if (row && row.stop === "target") { $("tags").innerHTML = ""; $("reason").textContent = `Accuracy ${row.accuracy.toFixed(3)} ≥ target ${S.target}. The loop stops.`; $("reason").className = "text"; $("src").textContent = ""; }
-    else if (diag) { $("tags").innerHTML = (diag.evidence_tags || []).map(t => `<span class="tag">${t}</span>`).join(""); $("reason").textContent = diag.reasoning; $("reason").className = "text"; const c = diag.cited_trace_ids || []; $("src").innerHTML = `history <b>${diag.history_source || "local"}</b>${c.length ? ` · cited ${c.length} trace${c.length > 1 ? "s" : ""} (${c.slice(0, 2).map(x => x.slice(0, 8)).join(", ")}${c.length > 2 ? "…" : ""})` : ""} · ${diag.provider || ""}`; }
-    else { $("tags").innerHTML = ""; $("reason").textContent = S.phase === 2 ? "Reading its Weave history and diagnosing…" : "Waiting for the evaluation."; $("reason").className = "text muted"; $("src").textContent = ""; }
-    const a = $("action");
-    if (row && row.action) { a.textContent = row.action; a.className = "action"; }
-    else if (row && row.stop === "target") { a.textContent = "none — target beaten"; a.className = "action none"; }
-    else { a.textContent = S.phase === 3 ? "deciding…" : "—"; a.className = "action none"; }
-    const probs = row && row.jev_probabilities ? Object.entries(row.jev_probabilities).sort((x, y) => y[1] - x[1]) : [];
-    $("probs").innerHTML = probs.map(([kx, v], j) => `<div class="prob${j === 0 ? " top" : ""}"><span>${kx}</span><div class="t"><i style="width:${(v * 100).toFixed(0)}%"></i></div><em>${v.toFixed(2)}</em></div>`).join("");
-    const g = $("gate");
-    if (row && row.escalation) { g.className = "gate on"; g.innerHTML = `<b>gate fired</b> · confidence ${row.jev_confidence.toFixed(2)} &lt; 0.40 → second opinion said <b>${row.escalation.verdict}</b>. ${row.escalation.critique || ""}`; }
-    else if (row && row.jev_confidence != null) { g.className = "gate"; g.textContent = `Jev confidence ${row.jev_confidence.toFixed(2)} · above the 0.40 floor.`; }
-    else { g.className = "gate"; g.textContent = row && row.provider ? `decided by ${row.provider}` : "Confidence gate: below 0.40 the decision is sent for a second opinion."; }
-    const ac = row && row.accounting; $("cost").textContent = ac ? `${row.provider} · ${ac.latency_s.toFixed(2)} s · ${ac.input_tokens ?? "?"}/${ac.output_tokens ?? "?"} tokens${ac.usd != null ? ` · $${ac.usd.toFixed(5)}` : ""}` : "";
-    $("decMeta").textContent = row && row.provider ? row.provider.split(" ")[0] : ""; $("diagMeta").textContent = diag && diag.provider ? diag.provider.split(" ")[0] : "";
+  // ------------------------------------------------------------ transcript
+  const feed = $("feed");
+  const scrollFeed = () => { if (S.follow) $("transcript").scrollTop = $("transcript").scrollHeight; };
+  $("transcript").addEventListener("scroll", () => { const t = $("transcript"); S.follow = t.scrollHeight - t.scrollTop - t.clientHeight < 60; });
+  const iterEl = i => { let el = feed.querySelector(`[data-iter="${i}"]`); if (!el) { if (feed.querySelector(".empty")) feed.innerHTML = ""; el = document.createElement("div"); el.className = "iter"; el.dataset.iter = i; el.innerHTML = `<div class="h"><b>iteration ${i}</b><span class="meta"></span></div>`; feed.appendChild(el); } return el; };
+  const callEl = (i, name) => { const it = iterEl(i); let c = it.querySelector(`[data-call="${name}"]`); if (!c) { c = document.createElement("div"); c.className = "call"; c.dataset.call = name; c.innerHTML = `<span class="ic">$</span><span class="sig"></span>`; it.appendChild(c); } return c; };
+  const sysLine = (text, cls = "") => { if (feed.querySelector(".empty")) feed.innerHTML = ""; const d = document.createElement("div"); d.className = "sys " + cls; d.textContent = text; feed.appendChild(d); scrollFeed(); };
+  const sig = (fn, args) => `<span class="fn">${fn}</span>(<span class="arg">${args}</span>)`;
+  const waiting = `<span class="ret"><span class="cur"></span></span>`;
+  const setActive = (i, name) => { feed.querySelectorAll(".call.on").forEach(c => c.classList.remove("on")); if (name) callEl(i, name).classList.add("on"); };
+
+  function onPhase(ev) {
+    const i = ev.iteration, k = PHASES.indexOf(ev.phase); S.iteration = i; S.phase = k; S.phaseStart = performance.now();
+    setPhaseBar(k); if (S.follow !== false || S.tab === PHASE_FN[ev.phase]) { S.tab = PHASE_FN[ev.phase]; } renderCode();
+    const it = iterEl(i);
+    if (k === 0) {
+      S.live = { sites: ev.sites, model: ev.model_family, ops: ev.feature_ops };
+      const c = callEl(i, "train"); c.querySelector(".sig").innerHTML = sig("train", `state=&lt;${esc(ev.model_family)} · ${(ev.sites || []).map(s => s.slice(0, 2)).join("+")}${(ev.feature_ops || []).length ? " · " + ev.feature_ops.join(",") : ""}&gt;, X_train, y_train`) + waiting;
+      setOut("return value", "fitting…");
+    } else if (k === 1) {
+      resolve(i, "train", `<span class="ok">→ Pipeline(${esc([...(S.live.ops || []), S.live.model].join(" → "))})</span>`);
+      const c = callEl(i, "evaluate"); c.querySelector(".sig").innerHTML = sig("evaluate", "model, X_train, y_train, X_test, y_test") + waiting;
+      setOut("return value", "scoring the fixed held-out split…");
+    } else if (k === 2) {
+      const prev = S.rows.find(r => r.iteration === i - 1);
+      const dv = prev ? ev.accuracy - prev.accuracy : null;
+      resolve(i, "evaluate", `<span class="ok">→ accuracy ${ev.accuracy.toFixed(3)}</span>${dv != null ? ` · <span class="${dv > 0.001 ? "ok" : dv < -0.001 ? "bad" : ""}">Δ ${sign(dv)} after ${esc(kind(prev.action))}</span>` : ""}`);
+      it.querySelector(".meta").innerHTML = `<span class="pill${dv > 0.001 ? " up" : dv < -0.001 ? " down" : ""}">${ev.accuracy.toFixed(3)}${dv != null ? " · Δ " + sign(dv) : ""}</span>`;
+      const c = callEl(i, "diagnose"); c.querySelector(".sig").innerHTML = sig("diagnose", "eval_result, history=build_history(state)") + waiting;
+      setOut("evaluate() returned", JSON.stringify({ accuracy: +ev.accuracy.toFixed(4) }, null, 1));
+    } else if (k === 3) {
+      const d = ev.diagnosis || {};
+      resolve(i, "diagnose", `<span class="ok">→ ${(d.evidence_tags || []).length ? "tags" : "no tags"}</span><span class="tags">${(d.evidence_tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join("")}</span> <span class="arg">· history ${esc(d.history_source || "local")}${(d.cited_trace_ids || []).length ? ` · cited ${d.cited_trace_ids.length} trace${d.cited_trace_ids.length > 1 ? "s" : ""}` : ""} · ${esc(d.provider || "")}</span>`, d.reasoning ? `<div class="say">${esc(d.reasoning)}</div>` : "");
+      const c = callEl(i, "decide_action"); c.querySelector(".sig").innerHTML = sig("decide_action", "diagnosis, unrevealed_sites, model_family, …") + waiting;
+      setOut("diagnose() returned", JSON.stringify({ evidence_tags: d.evidence_tags, cited_trace_ids: (d.cited_trace_ids || []).slice(0, 3), history_source: d.history_source, provider: d.provider }, null, 1));
+    }
+    setActive(i, PHASE_FN[ev.phase]); scrollFeed();
+  }
+  function resolve(i, name, html, extra = "") { const c = callEl(i, name); const r = c.querySelector(".ret"); if (r) r.outerHTML = `<span class="ret">${html}</span>${extra}`; else c.insertAdjacentHTML("beforeend", `<span class="ret">${html}</span>${extra}`); }
+
+  function onIteration(ev) {
+    const r = ev.row; S.rows = S.rows.filter(x => x.iteration !== r.iteration).concat([r]).sort((a, b) => a.iteration - b.iteration);
+    S.iteration = r.iteration; S.target = r.target ?? S.target;
+    const i = r.iteration, it = iterEl(i);
+    if (!it.querySelector(".meta").innerHTML) { const prev = S.rows.find(x => x.iteration === i - 1); const dv = prev ? r.accuracy - prev.accuracy : null; it.querySelector(".meta").innerHTML = `<span class="pill${dv > 0.001 ? " up" : dv < -0.001 ? " down" : ""}">${r.accuracy.toFixed(3)}${dv != null ? " · Δ " + sign(dv) : ""}</span>`; }
+    if (r.stop === "target") {
+      resolve(i, "evaluate", `<span class="ok">→ accuracy ${r.accuracy.toFixed(3)} ≥ target ${S.target}</span>`);
+      it.insertAdjacentHTML("beforeend", `<div class="end good">target beaten · loop stops</div>`);
+    } else {
+      const probs = r.jev_probabilities ? Object.entries(r.jev_probabilities).sort((a, b) => b[1] - a[1]) : [];
+      const probsHtml = probs.length ? `<div class="probs">${probs.map(([kx, v], j) => `<div class="prob${j === 0 ? " top" : ""}"><span>${esc(kx)}</span><div class="t"><i style="width:${(v * 100).toFixed(0)}%"></i></div><em>${v.toFixed(2)}</em></div>`).join("")}</div>` : "";
+      const gate = r.escalation ? `<div class="gate">gate: confidence ${r.jev_confidence.toFixed(2)} &lt; 0.40 → second_opinion() said <b>${esc(r.escalation.verdict)}</b>${r.escalation.critique ? ` <q>${esc(r.escalation.critique)}</q>` : ""}</div>` : "";
+      const ac = r.accounting || {};
+      resolve(i, "decide_action", `<span class="ok">→ ${esc(r.provider || "")}</span> <span class="arg">· ${ac.latency_s != null ? ac.latency_s.toFixed(2) + " s" : ""}${ac.input_tokens != null ? ` · ${ac.input_tokens}/${ac.output_tokens} tok` : ""}${ac.usd != null ? ` · $${ac.usd.toFixed(5)}` : ""}</span>`, probsHtml + gate);
+      const c = callEl(i, "act"); c.querySelector(".sig").innerHTML = sig("act", esc(r.action || "")) + `<span class="ret"><span class="ok">✓ applied</span> <span class="arg">· effect measured next iteration</span></span>`;
+      setOut("decide_action() returned", JSON.stringify({ provider: r.provider, action: r.action, jev_confidence: r.jev_confidence, escalation: r.escalation ? r.escalation.verdict : null }, null, 1));
+    }
+    if (r.poison) { const prev = S.rows.find(x => x.iteration === i - 1); if (prev && kind(prev.action) === "acquire_data" && arg(prev.action) === r.poison.site && r.accuracy < prev.accuracy) sysLine(`the acquired site ${r.poison.site} carried label noise (documented): accuracy fell ${sign(r.accuracy - prev.accuracy)} — the ledger now shows it`, "warn"); }
+    setActive(i, null); S.phase = r.stop === "target" ? -1 : 3; setPhaseBar(S.phase); renderCode(); renderChart(); renderLedger(); scrollFeed();
+  }
+  function onRunStart(ev) {
+    S.run = ev.run_name; S.rows = []; S.iteration = -1; S.phase = -1; S.target = ev.target; S.follow = true; feed.innerHTML = "";
+    $("runTitle").textContent = `${ev.run_name}${ev.poison ? ` · poison ${ev.poison.site} ${Math.round(ev.poison.label_noise * 100)}%` : ""}${ev.dry_run ? " · dry run" : ""} · weave ${ev.tracing}`;
+    sysLine(`run ${ev.run_name} · target ${ev.target} · max ${ev.max_iterations} iterations · start site ${ev.initial_site}${ev.poison ? ` · ADVERSARIAL: ${Math.round(ev.poison.label_noise * 100)}% of ${ev.poison.site} train labels flipped (agent not told)` : ""}`, "hi");
+    setPhaseBar(-1); renderChart(); renderLedger(); markRun(ev.run_name);
+  }
+  function onRunEnd(ev) {
+    S.phase = -1; setPhaseBar(-1); renderCode();
+    const cls = ev.stop === "target" ? "good" : ev.stop && ev.stop.startsWith("error") ? "bad" : "";
+    if (ev.stop !== "target") feed.insertAdjacentHTML("beforeend", `<div class="end ${cls}">stopped: ${esc(ev.stop)} · final ${ev.accuracy != null ? ev.accuracy.toFixed(3) : "—"} after ${ev.iterations} iteration(s)</div>`);
+    scrollFeed(); if (S.mode === "live") { setStatus(false); loadRuns(); }
+  }
+  const setPhaseBar = k => [...$("phases").children].forEach((s, j) => s.className = j === k ? "on" : (k >= 0 && j < k) ? "done" : "");
+
+  function onEvent(ev) {
+    if (ev.type === "run_start") onRunStart(ev);
+    else if (ev.type === "phase") onPhase(ev);
+    else if (ev.type === "iteration") onIteration(ev);
+    else if (ev.type === "log") { if (/^(iter |Target|Plateau|Stopped|ADVERSARIAL|!!|operator|cockpit)/.test(ev.text)) sysLine(ev.text, /!!|ADVERSARIAL/.test(ev.text) ? "warn" : "hi"); }
+    else if (ev.type === "run_end") onRunEnd(ev);
+    else if (ev.type === "status") setStatus(ev.running, ev.run_name, ev);
+  }
+
+  // ------------------------------------------------------------ chart + ledger
+  function renderChart() {
+    const rows = S.rows, W = 720, H = 140, L = 34, Rr = 12, T = 10, B = 18;
+    const n = Math.max(rows.length, 6), x = i => L + (W - L - Rr) * (i / (n - 1)), y = v => T + (H - T - B) * (1 - (v - 0.4) / 0.6);
+    let s = `<g class="grid">${[0.5, 0.7, 0.9].map(v => `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 3}" text-anchor="end">${v.toFixed(1)}</text>`).join("")}</g>`;
+    s += `<line class="target" x1="${L}" x2="${W - Rr}" y1="${y(S.target)}" y2="${y(S.target)}"/><text x="${W - Rr}" y="${y(S.target) - 4}" text-anchor="end">target ${S.target}</text>`;
+    s += `<line class="base" x1="${L}" x2="${W - Rr}" y1="${y(0.787)}" y2="${y(0.787)}"/><text x="${L + 4}" y="${y(0.787) + 11}">published 0.787</text>`;
+    if (rows.length) {
+      s += `<polyline class="train" points="${rows.map((r, i) => `${x(i)},${y(r.train_accuracy)}`).join(" ")}"/><polyline class="acc" points="${rows.map((r, i) => `${x(i)},${y(r.accuracy)}`).join(" ")}"/>`;
+      rows.forEach((r, i) => { s += `<circle cx="${x(i)}" cy="${y(r.accuracy)}" r="3" class="${r.accuracy >= S.target ? "hit" : ""}"><title>iter ${r.iteration}: ${r.accuracy.toFixed(3)}${r.action ? " → " + r.action : ""}</title></circle>`; if (r.action) s += `<text x="${x(i)}" y="${y(r.accuracy) - 8}" text-anchor="middle">${esc(kind(r.action).replace("_", " "))}</text>`; });
+    }
+    $("chart").innerHTML = s; $("chartMeta").textContent = rows.length ? `${rows.length} it · best ${Math.max(...rows.map(r => r.accuracy)).toFixed(3)} · last ${rows[rows.length - 1].accuracy.toFixed(3)}` : "";
   }
   function renderLedger() {
-    const rows = S.rows, body = $("ledger"); const out = [];
-    for (let j = 1; j < rows.length; j++) { const p = rows[j - 1], x = rows[j]; if (!p.action) continue; const dv = x.accuracy - p.accuracy; out.push(`<tr class="${j === rows.length - 1 ? "now" : ""}"><td>${p.iteration}</td><td>${kind(p.action)}(${arg(p.action)})</td><td class="num ${dv > 0.001 ? "up" : dv < -0.001 ? "down" : ""}">${sign(dv)}</td></tr>`); }
-    const lastRow = rows[rows.length - 1]; if (lastRow && lastRow.action && S.mode !== "idle") out.push(`<tr class="now"><td>${lastRow.iteration}</td><td>${kind(lastRow.action)}(${arg(lastRow.action)})</td><td class="num">…</td></tr>`);
-    body.innerHTML = out.join("") || `<tr><td colspan="3" class="empty">no actions yet</td></tr>`;
-  }
-  function renderChart() {
-    const svg = $("chart"), rows = S.rows, W = 720, H = 220, L = 36, Rr = 14, T = 12, B = 26;
-    const n = Math.max(rows.length, 6), x = i => L + (W - L - Rr) * (i / (n - 1)), y = v => T + (H - T - B) * (1 - (v - 0.4) / 0.6);
-    let s = `<g class="grid">${[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map(v => `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 8}" y="${y(v) + 3}" text-anchor="end">${v.toFixed(1)}</text>`).join("")}</g>`;
-    s += `<line class="target" x1="${L}" x2="${W - Rr}" y1="${y(S.target)}" y2="${y(S.target)}"/><text x="${W - Rr}" y="${y(S.target) - 5}" text-anchor="end" class="lbl">target ${S.target}</text>`;
-    s += `<line class="base" x1="${L}" x2="${W - Rr}" y1="${y(0.787)}" y2="${y(0.787)}"/><text x="${L + 4}" y="${y(0.787) + 12}">published 0.787</text>`;
-    if (rows.length) {
-      s += `<polyline class="train" points="${rows.map((r, i) => `${x(i)},${y(r.train_accuracy)}`).join(" ")}"/>`;
-      s += `<polyline class="acc" points="${rows.map((r, i) => `${x(i)},${y(r.accuracy)}`).join(" ")}"/>`;
-      rows.forEach((r, i) => { s += `<circle cx="${x(i)}" cy="${y(r.accuracy)}" r="3.5" class="${r.accuracy >= S.target ? "hit" : ""}${i === rows.length - 1 ? " cur" : ""}"><title>iter ${r.iteration}: ${r.accuracy.toFixed(3)}${r.action ? " → " + r.action : ""}</title></circle>`; if (r.action) s += `<text x="${x(i)}" y="${y(r.accuracy) - 9}" text-anchor="middle">${kind(r.action).replace("_", " ")}</text>`; s += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${r.iteration}</text>`; });
-    }
-    svg.innerHTML = s; $("chartMeta").textContent = rows.length ? `${rows.length} iteration${rows.length > 1 ? "s" : ""} · best ${Math.max(...rows.map(r => r.accuracy)).toFixed(3)}` : "";
-  }
-  function pushLog(text, hi = false) { const l = $("log"); if (l.querySelector(".empty")) l.innerHTML = ""; const d = document.createElement("div"); d.className = "l" + (hi ? " hi" : ""); d.textContent = text; l.appendChild(d); while (l.children.length > 400) l.firstChild.remove(); l.scrollTop = l.scrollHeight; }
-  const renderAll = () => { renderIteration(); renderLedger(); renderChart(); };
-
-  // ------------------------------------------------------------ event handling (live + replay share this)
-  function onEvent(ev) {
-    if (ev.type === "run_start") { S.run = ev.run_name; S.rows = []; S.partial = { sites: [ev.initial_site || S.initialSite] }; S.iteration = 0; S.target = ev.target; S.poison = ev.poison; S.badSites = new Set(); $("log").innerHTML = ""; $("loopMeta").textContent = `${ev.run_name}${ev.poison ? ` · poison ${ev.poison.site} ${Math.round(ev.poison.label_noise * 100)}%` : ""}${ev.dry_run ? " · dry run" : ""} · tracing ${ev.tracing}`; setPhase(-1); pushLog(`run ${ev.run_name} started · target ${ev.target}${ev.poison ? ` · ADVERSARIAL: ${Math.round(ev.poison.label_noise * 100)}% of ${ev.poison.site} train labels flipped (documented)` : ""}`, true); renderAll(); }
-    else if (ev.type === "phase") { const k = PHASES.indexOf(ev.phase); S.iteration = ev.iteration; if (k === 0) { S.partial = { sites: ev.sites, model_family: ev.model_family, feature_ops: ev.feature_ops }; } if (ev.accuracy != null) S.partial.accuracy = ev.accuracy; if (ev.diagnosis) S.partial.diagnosis = ev.diagnosis; setPhase(k); renderIteration(); }
-    else if (ev.type === "iteration") { const r = ev.row; S.rows = S.rows.filter(x => x.iteration !== r.iteration).concat([r]).sort((a, b) => a.iteration - b.iteration); S.iteration = r.iteration; S.partial = {}; S.target = r.target ?? S.target; const prev = S.rows.find(x => x.iteration === r.iteration - 1); if (prev && prev.poison && kind(prev.action) === "acquire_data" && arg(prev.action) === prev.poison.site && r.accuracy < prev.accuracy) S.badSites.add(prev.poison.site); if (prev) { const dv = r.accuracy - prev.accuracy; banner(`${kind(prev.action)}(${arg(prev.action)}) → Δ ${sign(dv)}`); } if (r.stop === "target") banner(`target ${S.target} beaten at ${r.accuracy.toFixed(3)}`); if (r.escalation) pushLog(`gate: confidence ${r.jev_confidence.toFixed(2)} < 0.40 → second opinion ${r.escalation.verdict}`, true); if (r.action) setPhase(3); renderAll(); }
-    else if (ev.type === "log") { pushLog(ev.text, /^iter |Target|Plateau|Stopped|ADVERSARIAL|!!/.test(ev.text)); }
-    else if (ev.type === "run_end") { setPhase(-1); pushLog(`run ended: ${ev.stop} · final ${ev.accuracy != null ? ev.accuracy.toFixed(3) : "—"} after ${ev.iterations} iteration(s)`, true); $("logMeta").textContent = `ended · ${ev.stop}`; if (S.mode === "live") { setStatus(false); refreshRuns(); } }
-    else if (ev.type === "status") { setStatus(ev.running, ev.run_name, ev); }
+    const rows = S.rows, out = [];
+    for (let j = 1; j < rows.length; j++) { const p = rows[j - 1], x = rows[j]; if (!p.action) continue; const dv = x.accuracy - p.accuracy; out.push(`<div class="${dv > 0.001 ? "up" : dv < -0.001 ? "down" : ""}"><span>${p.iteration}</span><span>${esc(kind(p.action))}(${esc(arg(p.action))})</span><span>${sign(dv)}</span></div>`); }
+    const l = rows[rows.length - 1]; if (l && l.action && S.mode !== "idle") out.push(`<div><span>${l.iteration}</span><span>${esc(kind(l.action))}(${esc(arg(l.action))})</span><span>…</span></div>`);
+    $("ledger").innerHTML = out.join("") || `<span class="empty">no actions yet</span>`;
   }
 
-  // ------------------------------------------------------------ live: SSE + controls
-  let es = null;
+  // ------------------------------------------------------------ live wiring
+  function setStatus(running, name, info) {
+    $("dot").className = "dot" + (running ? " live" : "");
+    $("status").textContent = running ? `running · ${name}` : "idle";
+    if (info && info.tracing) $("tracing").textContent = `weave ${info.tracing}`;
+    $("start").disabled = !!running; $("stop").hidden = !running;
+    if (info && info.target && !S.rows.length) S.target = info.target;
+    if (info && info.initial_site) S.initialSite = info.initial_site;
+  }
+  let es;
   function connect() {
     es = new EventSource("/api/events");
     ["status", "run_start", "phase", "iteration", "log", "run_end"].forEach(t => es.addEventListener(t, e => { if (S.mode === "replay" && t !== "status") return; if (t !== "status") S.mode = "live"; onEvent(JSON.parse(e.data)); }));
     es.onerror = () => { $("status").textContent = "backend unreachable — retrying"; $("dot").className = "dot"; };
   }
-  function setStatus(running, name, info) {
-    $("dot").className = "dot" + (running ? " live" : ""); $("status").textContent = running ? `running ${name}` : `idle${info && info.tracing ? ` · weave ${info.tracing}` : ""}`;
-    $("start").disabled = !!running; $("stop").hidden = !running;
-    if (info && info.target) { S.target = S.rows.length ? S.target : info.target; }
-    if (info && info.sites) { S.sites = info.sites; S.initialSite = info.initial_site; }
-  }
   $("start").onclick = async () => {
-    S.mode = "live"; $("replayBar").hidden = true; stopReplay();
-    const body = { poison_site: $("poison").value || null, iterations: +$("iters").value || null, dry_run: $("dry").checked };
+    stopReplay(); S.mode = "live"; $("replayBar").hidden = true;
+    const body = { poison_site: $("poisonOn").checked ? $("poison").value : null, iterations: +$("iters").value || null, dry_run: $("dry").checked };
     const r = await fetch("/api/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    if (!r.ok) banner((await r.json()).detail || "could not start");
+    if (!r.ok) toast((await r.json()).detail || "could not start");
   };
   $("stop").onclick = () => fetch("/api/runs/stop", { method: "POST" });
-  async function refreshRuns() {
+  addEventListener("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !$("start").disabled) $("start").click(); });
+
+  async function loadRuns() {
     const runs = await (await fetch("/api/runs")).json();
-    $("runs").innerHTML = `<option value="">replay a past run…</option>` + runs.map(r => `<option value="${r.name}">${r.name} · ${r.iterations} it · ${r.final_accuracy.toFixed(3)}${r.poison ? " · poison " + r.poison.site : ""}${r.synthetic ? " · dry" : ""}</option>`).join("");
+    $("runs").innerHTML = runs.map(r => `<div class="run${r.name === S.run ? " sel" : ""}" data-n="${esc(r.name)}"><span class="n">${esc(r.name)}</span><span class="a${r.final_accuracy >= (r.target || 0.85) ? " hit" : ""}">${r.final_accuracy.toFixed(3)}</span><span class="m">${r.iterations} it${r.poison ? " · poison " + esc(r.poison.site) : ""}${r.synthetic ? " · dry" : ""}${r.stop ? " · " + esc(r.stop) : ""}</span></div>`).join("") || `<div class="sys">no runs yet</div>`;
+    [...$("runs").children].forEach(el => el.onclick = async () => { const data = await (await fetch(`/api/runs/${el.dataset.n}`)).json(); startReplay(el.dataset.n, data.rows); });
   }
+  const markRun = name => [...$("runs").children].forEach(el => el.classList.toggle("sel", el.dataset && el.dataset.n === name));
+
   // cockpit
-  SITE_ORDER.filter(s => s !== "switzerland").forEach(s => { const l = document.createElement("label"); l.innerHTML = `<input type="checkbox" value="${s}"> ${s}`; $("cFreeze").appendChild(l); });
+  ["hungary", "va", "cleveland"].forEach(s => { const l = document.createElement("label"); l.innerHTML = `<input type="checkbox" value="${s}"> ${s}`; $("cFreeze").appendChild(l); });
   async function loadControls() { const c = await (await fetch("/api/controls")).json(); $("cTarget").value = c.target_accuracy ?? ""; [...$("cFreeze").querySelectorAll("input")].forEach(i => i.checked = (c.frozen_sites || []).includes(i.value)); $("cState").textContent = Object.keys(c).length ? `active: ${JSON.stringify(c)}` : "no overrides"; }
-  $("cApply").onclick = async () => { const body = { target_accuracy: $("cTarget").value ? +$("cTarget").value : null, frozen_sites: [...$("cFreeze").querySelectorAll("input:checked")].map(i => i.value) }; await fetch("/api/controls", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); loadControls(); banner("controls applied — the loop reads them at its next iteration"); };
+  $("cApply").onclick = async () => { const body = { target_accuracy: $("cTarget").value ? +$("cTarget").value : null, frozen_sites: [...$("cFreeze").querySelectorAll("input:checked")].map(i => i.value) }; await fetch("/api/controls", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); loadControls(); toast("applied — read by the loop at its next iteration"); };
   $("cClear").onclick = async () => { await fetch("/api/controls", { method: "DELETE" }); loadControls(); };
 
-  // ------------------------------------------------------------ replay of a past run (synthesised phase events)
+  // ------------------------------------------------------------ replay (synthesised phase events from a recorded run)
   let replay = null;
   const stopReplay = () => { if (replay) { clearTimeout(replay.tm); replay = null; } };
-  $("runs").onchange = async e => {
-    const name = e.target.value; if (!name) { $("replayBar").hidden = true; stopReplay(); S.mode = "idle"; return; }
-    const data = await (await fetch(`/api/runs/${name}`)).json();
-    startReplay(name, data.rows);
-  };
+  function buildSteps(name, rows) {
+    const first = rows[0], steps = [[0, { type: "run_start", run_name: name, target: first.target ?? 0.85, poison: first.poison, dry_run: first.synthetic, tracing: "replay", initial_site: first.sites[0], max_iterations: rows.length }]];
+    rows.forEach(r => {
+      steps.push([0.8, { type: "phase", phase: "train", iteration: r.iteration, sites: r.sites, model_family: r.model, feature_ops: r.feature_ops }]);
+      steps.push([0.9, { type: "phase", phase: "evaluate", iteration: r.iteration }]);
+      steps.push([1.0, { type: "phase", phase: "diagnose", iteration: r.iteration, accuracy: r.accuracy }]);
+      steps.push([1.8, { type: "phase", phase: "act", iteration: r.iteration, diagnosis: r.diagnosis }]);
+      steps.push([1.3, { type: "iteration", row: r }]);
+    });
+    const l = rows[rows.length - 1]; steps.push([0.6, { type: "run_end", run_name: name, accuracy: l.accuracy, iterations: rows.length, stop: l.stop || "max_iterations" }]);
+    return steps;
+  }
   function startReplay(name, rows) {
     stopReplay(); S.mode = "replay"; $("replayBar").hidden = false;
-    const first = rows[0];
-    const steps = [];
-    steps.push([0, { type: "run_start", run_name: name, target: first.target ?? 0.85, poison: first.poison, dry_run: first.synthetic, tracing: "replay", initial_site: first.sites[0] }]);
-    rows.forEach((r, i) => {
-      steps.push([0.9, { type: "phase", phase: "train", iteration: r.iteration, sites: r.sites, model_family: r.model, feature_ops: r.feature_ops }]);
-      steps.push([0.9, { type: "phase", phase: "evaluate", iteration: r.iteration }]);
-      steps.push([0.9, { type: "phase", phase: "diagnose", iteration: r.iteration, accuracy: r.accuracy }]);
-      steps.push([1.6, { type: "phase", phase: "act", iteration: r.iteration, diagnosis: r.diagnosis }]);
-      steps.push([1.2, { type: "iteration", row: r }]);
-      steps.push([0.1, { type: "log", text: `iter ${r.iteration} acc=${r.accuracy.toFixed(3)} model=${r.model} sites=${r.sites.join(",")}${r.action ? " → " + r.action : ""}` }]);
-    });
-    const lastR = rows[rows.length - 1];
-    steps.push([0.8, { type: "run_end", run_name: name, accuracy: lastR.accuracy, iterations: rows.length, stop: lastR.stop || "max_iterations" }]);
-    replay = { steps, i: 0, playing: true, rows, tm: null };
-    const tick = () => { if (!replay || !replay.playing) return; if (replay.i >= replay.steps.length) { replay.playing = false; $("rPlay").textContent = "replay"; return; } const [delay, ev] = replay.steps[replay.i++]; onEvent(ev); $("rPos").textContent = `${S.iteration + (S.rows.length ? 1 : 0)} / ${rows.length}`; replay.tm = setTimeout(tick, delay * 1000); };
+    replay = { name, rows, steps: buildSteps(name, rows), i: 0, playing: true, tm: null };
     $("rPlay").textContent = "pause"; tick();
   }
-  $("rPlay").onclick = () => { if (!replay) return; if (replay.i >= replay.steps.length) { const rows = replay.rows, name = S.run; startReplay(name, rows); return; } replay.playing = !replay.playing; $("rPlay").textContent = replay.playing ? "pause" : "play"; if (replay.playing) { const [, ev] = replay.steps[replay.i++]; onEvent(ev); replay.tm = setTimeout(() => { const t = () => { if (!replay || !replay.playing) return; if (replay.i >= replay.steps.length) { replay.playing = false; $("rPlay").textContent = "replay"; return; } const [d, e] = replay.steps[replay.i++]; onEvent(e); replay.tm = setTimeout(t, d * 1000); }; t(); }, 600); } };
-  const jumpTo = iter => { if (!replay) return; clearTimeout(replay.tm); const idx = replay.steps.findIndex(([, e]) => e.type === "iteration" && e.row.iteration === iter); if (idx < 0) return; replay.steps.slice(0, idx + 1).forEach(([, e]) => { if (e.type !== "log") onEvent(e); }); replay.i = idx + 1; replay.playing = false; $("rPlay").textContent = "play"; };
+  function tick() {
+    if (!replay || !replay.playing) return;
+    if (replay.i >= replay.steps.length) { replay.playing = false; $("rPlay").textContent = "replay"; return; }
+    const [delay, ev] = replay.steps[replay.i++]; onEvent(ev);
+    $("rPos").textContent = `${Math.max(0, S.iteration) + 1} / ${replay.rows.length}`;
+    replay.tm = setTimeout(tick, delay * 1000);
+  }
+  $("rPlay").onclick = () => { if (!replay) return; if (replay.i >= replay.steps.length) return startReplay(replay.name, replay.rows); replay.playing = !replay.playing; $("rPlay").textContent = replay.playing ? "pause" : "play"; if (replay.playing) tick(); else clearTimeout(replay.tm); };
+  const jumpTo = iter => { if (!replay) return; clearTimeout(replay.tm); const idx = replay.steps.findIndex(([, e]) => e.type === "iteration" && e.row.iteration === iter); if (idx < 0) return; feed.innerHTML = ""; S.rows = []; replay.steps.slice(0, idx + 1).forEach(([, e]) => onEvent(e)); replay.i = idx + 1; replay.playing = false; $("rPlay").textContent = "play"; $("rPos").textContent = `${iter + 1} / ${replay.rows.length}`; };
   $("rNext").onclick = () => jumpTo(Math.min(replay ? replay.rows.length - 1 : 0, S.iteration + 1));
   $("rPrev").onclick = () => jumpTo(Math.max(0, S.iteration - 1));
 
   // ------------------------------------------------------------ boot
-  fetch("/api/status").then(r => r.json()).then(info => { setStatus(info.running, info.run_name, info); S.target = info.target; $("iters").value = info.max_iterations; renderAll(); }).catch(() => { $("status").textContent = "backend unreachable — start it with: python -m agentforge.server"; });
-  refreshRuns(); loadControls(); connect(); renderAll();
+  fetch("/api/source").then(r => r.json()).then(src => { S.source = src; renderCode(); }).catch(() => { $("src").textContent = "source unavailable"; });
+  fetch("/api/status").then(r => r.json()).then(info => { setStatus(info.running, info.run_name, info); S.target = info.target; $("iters").value = info.max_iterations; renderChart(); }).catch(() => { $("status").textContent = "backend unreachable — run: python -m agentforge.server"; });
+  loadRuns(); loadControls(); connect(); renderChart();
 })();
 </script>
 </body>
