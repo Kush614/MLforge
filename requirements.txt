@@ -15,3 +15,4 @@ typesafe-sdk>=0.5   # TypeSafe System One (Jev) action head
 matplotlib>=3.8
 fastapi>=0.110
 uvicorn>=0.29
+playwright>=1.45   # screenshots for demo/about.html (dev only)

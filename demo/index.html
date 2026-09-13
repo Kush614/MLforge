@@ -89,7 +89,7 @@
   .flow .think.on { opacity: 1; stroke-dasharray: 3 4; animation: dash .7s linear infinite; }
   .flow .tag { fill: var(--raised); stroke: var(--border-2); } .flow .tagt { fill: var(--ink-2); font-size: 10px; font-family: var(--mono); }
   .flow .opt { stroke: var(--border-2); stroke-width: 1.5; fill: none; transition: all .5s; } .flow .opt.pick { stroke: var(--green); stroke-width: 3; }
-  .flow .optt { fill: var(--ink-3); font-size: 10.5px; font-family: var(--mono); transition: fill .3s; } .flow .optt.pick { fill: var(--green); }
+  .flow .optt { fill: var(--ink-3); font-size: 9.5px; font-family: var(--mono); transition: fill .3s; } .flow .optt.pick { fill: var(--green); }
   .flow .optp { fill: var(--ink-3); font-size: 10px; font-family: var(--mono); }
   .flow .badge rect { fill: #fbf3dc; stroke: var(--amber); } .flow .badge text { fill: var(--amber); font-size: 10px; font-family: var(--mono); }
   .flow .badge { opacity: 0; transition: opacity .3s; } .flow .badge.on { opacity: 1; }
@@ -165,6 +165,7 @@
   <aside class="side">
     <div class="top">
       <div class="brand"><span class="dot" id="dot"></span>AgentForge<small id="tracing">—</small></div>
+      <div class="st" style="margin-top:4px"><a href="/about" style="color:var(--ink-3);text-decoration:none">about this project →</a></div>
       <div class="st" id="status">connecting…</div>
     </div>
     <h3>Runs</h3>
@@ -187,7 +188,7 @@
     </div>
     <div class="center">
       <div class="diagram">
-        <svg class="flow" id="flow" viewBox="0 0 980 400" role="img" aria-label="The agent's loop: hospitals feed data; train, score, diagnose, decide, apply the change, repeat.">
+        <svg class="flow" id="flow" viewBox="0 0 1000 400" role="img" aria-label="The agent's loop: hospitals feed data; train, score, diagnose, decide, apply the change, repeat.">
           <defs>
             <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrow" id="ahp"/></marker>
           </defs>
@@ -196,7 +197,7 @@
           <text x="24" y="30" class="title">Hospitals</text>
           <text x="24" y="46" class="desc">data is unlocked one at a time</text>
           <g id="hospitals"></g>
-          <path id="feed" class="feed" d="M 150 150 C 190 150, 190 150, 228 150" marker-end="url(#ah)"/>
+          <path id="feedPath" class="feed" d="M 150 150 C 190 150, 190 150, 228 150" marker-end="url(#ah)"/>
 
           <!-- TRAIN -->
           <g class="node" id="n0" transform="translate(230,80)">
@@ -234,15 +235,15 @@
 
           <!-- DECIDE -->
           <g class="node" id="n3" transform="translate(830,80)">
-            <rect class="box" width="136" height="140" rx="10"/><rect class="ring" width="136" height="140" rx="10"/>
+            <rect class="box" width="158" height="140" rx="10"/><rect class="ring" width="158" height="140" rx="10"/>
             <text x="14" y="26" class="title">4 · Decide</text>
             <text x="14" y="42" class="desc">pick exactly one move</text>
             <g id="opts" transform="translate(14,54)"></g>
-            <g class="badge" id="gateBadge" transform="translate(14,116)"><rect width="108" height="16" rx="4"/><text x="6" y="12">unsure → 2nd opinion</text></g>
+            <g class="badge" id="gateBadge" transform="translate(14,116)"><rect width="130" height="16" rx="4"/><text x="6" y="12">unsure → 2nd opinion</text></g>
           </g>
 
           <!-- loop back: apply the change -->
-          <path class="back" id="back" d="M 898 222 L 898 262 L 310 262 L 310 222" marker-end="url(#ah)"/>
+          <path class="back" id="back" d="M 909 222 L 909 262 L 310 262 L 310 222" marker-end="url(#ah)"/>
           <text x="604" y="280" text-anchor="middle" class="mono" id="backLbl">apply the move, then repeat</text>
 
           <!-- memory -->
@@ -322,16 +323,16 @@
   const optsG = $("opts");
   OPTS.forEach((o, i) => {
     const y = i * 12 + 6;
-    optsG.appendChild(el("line", { class: "opt", id: "opt_" + o, x1: 0, x2: 40, y1: y, y2: y }));
-    optsG.appendChild(el("text", { class: "optt", id: "optt_" + o, x: 46, y: y + 3.5 }, OPT_LBL[o]));
+    optsG.appendChild(el("line", { class: "opt", id: "opt_" + o, x1: 0, x2: 28, y1: y, y2: y }));
+    optsG.appendChild(el("text", { class: "optt", id: "optt_" + o, x: 34, y: y + 3.5 }, OPT_LBL[o]));
   });
   const platesG = $("plates"); const PLATES = 16;
   for (let i = 0; i < PLATES; i++) platesG.appendChild(el("rect", { class: "plate", id: "pl" + i, x: i * 23, y: 0, width: 19, height: 26, rx: 3 }));
 
   // ------------------------------------------------------------ diagram state → visuals
-  const NODE_X = [310, 510, 710, 898], NODE_Y = 150;
+  const NODE_X = [310, 510, 710, 909], NODE_Y = 150;
   const tok = { x: 310, y: 150, tx: 310, ty: 150, path: null, t: 0 };
-  const setNodes = k => { for (let j = 0; j < 4; j++) { const n = $("n" + j); n.classList.toggle("on", j === k); n.classList.toggle("done", k >= 0 && j < k); } for (let j = 0; j < 3; j++) $("e" + j).classList.toggle("on", k === j + 1); $("back").classList.toggle("on", k === 3 && S.applying); $("think").classList.toggle("on", k === 2); $("feed").classList.toggle("on", !!S.feeding); [...$("phases").children].forEach((s, j) => s.className = j === k ? "on" : (k >= 0 && j < k) ? "done" : ""); };
+  const setNodes = k => { for (let j = 0; j < 4; j++) { const n = $("n" + j); n.classList.toggle("on", j === k); n.classList.toggle("done", k >= 0 && j < k); } for (let j = 0; j < 3; j++) $("e" + j).classList.toggle("on", k === j + 1); $("back").classList.toggle("on", k === 3 && S.applying); $("think").classList.toggle("on", k === 2); $("feedPath").classList.toggle("on", !!S.feeding); [...$("phases").children].forEach((s, j) => s.className = j === k ? "on" : (k >= 0 && j < k) ? "done" : ""); };
   const moveToken = k => { if (k < 0) return; tok.tx = NODE_X[k]; tok.ty = NODE_Y; };
   function animate(now) {
     // token glides between nodes; along the loop-back it follows the rectangle path
@@ -345,7 +346,7 @@
   }
   requestAnimationFrame(animate);
   function drawHospitals(sites, acquiring) {
-    SITES.forEach(s => { const g = $("h_" + s); const lit = sites.includes(s) || acquiring === s; g.classList.toggle("lit", lit); g.classList.toggle("bad", S.badSites.has(s)); $("hs_" + s).textContent = `${SITE_ROWS[s]} patients · ${S.badSites.has(s) ? "noisy labels (documented)" : lit ? "in use" : "locked"}`; });
+    SITES.forEach(s => { const g = $("h_" + s); const lit = sites.includes(s) || acquiring === s; g.classList.toggle("lit", lit); g.classList.toggle("bad", S.badSites.has(s)); $("hs_" + s).textContent = `${SITE_ROWS[s]} patients · ${S.badSites.has(s) ? "noisy labels" : lit ? "in use" : "locked"}`; });
     const n = sites.length; for (let i = 0; i < 4; i++) $("tv" + i).classList.toggle("lit", i < n);
   }
   function drawScore(acc, prev) {
@@ -361,7 +362,7 @@
     $("diagSrc").textContent = src || "";
   }
   function drawOptions(probs, picked, gate) {
-    OPTS.forEach(o => { const p = probs && probs[o] != null ? probs[o] : null; const line = $("opt_" + o), t = $("optt_" + o); line.setAttribute("x2", p != null ? 4 + p * 36 : 40); line.classList.toggle("pick", picked === o); t.classList.toggle("pick", picked === o); t.textContent = OPT_LBL[o] + (p != null ? ` ${Math.round(p * 100)}%` : ""); });
+    OPTS.forEach(o => { const p = probs && probs[o] != null ? probs[o] : null; const line = $("opt_" + o), t = $("optt_" + o); line.setAttribute("x2", p != null ? 3 + p * 25 : 28); line.classList.toggle("pick", picked === o); t.classList.toggle("pick", picked === o); t.textContent = OPT_LBL[o] + (p != null ? ` ${Math.round(p * 100)}%` : ""); });
     $("gateBadge").classList.toggle("on", !!gate);
   }
   function drawPlates(n) { for (let i = 0; i < PLATES; i++) { const p = $("pl" + i); p.classList.toggle("lit", i < n); if (S.phase !== 2) p.classList.remove("read"); } }
@@ -411,7 +412,7 @@
       callEl(i, "diagnose").querySelector(".sig").innerHTML = sig("diagnose", "eval_result, history") + waiting;
     } else if (k === 3) {
       moveToken(3); const d = ev.diagnosis || {}; const tags = d.evidence_tags || [];
-      drawTags(tags, `${d.history_source === "weave_api" ? "read from Weave" : "from this run"}${(d.cited_trace_ids || []).length ? ` · cited ${d.cited_trace_ids.length} past trace${d.cited_trace_ids.length > 1 ? "s" : ""}` : ""}`);
+      drawTags(tags, `${d.history_source === "weave_api" ? "memory: Weave" : "memory: this run"}${(d.cited_trace_ids || []).length ? ` · cited ${d.cited_trace_ids.length}` : ""}`);
       resolve(i, "diagnose", `<span class="ok">→ ${tags.length ? tags.map(esc).join(", ") : "no tags"}</span> <span class="arg">· history ${esc(d.history_source || "local")} · ${esc(d.provider || "")}</span>`, d.reasoning ? `<div class="say">${esc(d.reasoning)}</div>` : "");
       const plain = tags.map(t => TAG_LBL[t] || t);
       caption(`round ${i} · decide`, plain.length ? `Its diagnosis: ${plain.join(", ")}.` : "Its diagnosis found no strong signal.", d.reasoning ? `“${d.reasoning.slice(0, 220)}${d.reasoning.length > 220 ? "…" : ""}”` : "");
@@ -443,7 +444,7 @@
       caption(`round ${i} · move`, `It decided to ${what}${conf ? ` — ${conf}` : ""}.`, r.escalation ? `It wasn't confident (below 40%), so it asked the reasoning model for a second opinion, which said “${r.escalation.verdict}”.` : `Decided by ${r.provider}${ac.latency_s != null ? ` in ${ac.latency_s.toFixed(2)} s` : ""}. The effect shows up as the score of the next round.`);
       // token rides the loop-back path; hospitals feed animation if data was acquired
       S.applying = true; setNodes(3); tok.path = $("back"); tok.t = 0;
-      if (k === "acquire_data") { S.feeding = true; drawHospitals(r.sites, arg(r.action)); setTimeout(() => { S.feeding = false; $("feed").classList.remove("on"); }, 2500); }
+      if (k === "acquire_data") { S.feeding = true; drawHospitals(r.sites, arg(r.action)); setTimeout(() => { S.feeding = false; $("feedPath").classList.remove("on"); }, 2500); }
     }
     setActive(i, null); renderChart(); renderLedger(); scrollFeed();
   }
@@ -472,8 +473,8 @@
     const n = Math.max(rows.length, 6), x = i => L + (W - L - Rr) * (i / (n - 1)), y = v => T + (H - T - B) * (1 - (v - 0.4) / 0.6);
     let s = `<g class="grid">${[0.5, 0.7, 0.9].map(v => `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 3}" text-anchor="end">${Math.round(v * 100)}%</text>`).join("")}</g>`;
     s += `<line class="target" x1="${L}" x2="${W - Rr}" y1="${y(S.target)}" y2="${y(S.target)}"/><text x="${W - Rr}" y="${y(S.target) - 4}" text-anchor="end">target ${pct(S.target)}</text>`;
-    s += `<line class="base" x1="${L}" x2="${W - Rr}" y1="${y(0.787)}" y2="${y(0.787)}"/><text x="${L + 4}" y="${y(0.787) + 11}">published best 78.7%</text>`;
-    if (rows.length) { s += `<polyline class="train" points="${rows.map((r, i) => `${x(i)},${y(r.train_accuracy)}`).join(" ")}"/><polyline class="acc" points="${rows.map((r, i) => `${x(i)},${y(r.accuracy)}`).join(" ")}"/>`; rows.forEach((r, i) => { s += `<circle cx="${x(i)}" cy="${y(r.accuracy)}" r="3" class="${r.accuracy >= S.target ? "hit" : ""}"><title>round ${r.iteration}: ${pct(r.accuracy)}${r.action ? " → " + r.action : ""}</title></circle>`; if (r.action) s += `<text x="${x(i)}" y="${y(r.accuracy) - 8}" text-anchor="middle">${esc(OPT_LBL[kind(r.action)] || kind(r.action))}</text>`; }); }
+    s += `<line class="base" x1="${L}" x2="${W - Rr}" y1="${y(0.787)}" y2="${y(0.787)}"/><text x="${W - Rr}" y="${y(0.787) + 11}" text-anchor="end">published best 78.7%</text>`;
+    if (rows.length) { s += `<polyline class="train" points="${rows.map((r, i) => `${x(i)},${y(r.train_accuracy)}`).join(" ")}"/><polyline class="acc" points="${rows.map((r, i) => `${x(i)},${y(r.accuracy)}`).join(" ")}"/>`; rows.forEach((r, i) => { s += `<circle cx="${x(i)}" cy="${y(r.accuracy)}" r="3" class="${r.accuracy >= S.target ? "hit" : ""}"><title>round ${r.iteration}: ${pct(r.accuracy)}${r.action ? " → " + r.action : ""}</title></circle>`; if (r.action) { const near = Math.abs(r.accuracy - 0.787) < 0.05 || Math.abs(r.accuracy - S.target) < 0.05; s += `<text x="${x(i)}" y="${y(r.accuracy) + (near ? 14 : -8)}" text-anchor="middle">${esc(OPT_LBL[kind(r.action)] || kind(r.action))}</text>`; } }); }
     $("chart").innerHTML = s; $("chartMeta").textContent = rows.length ? `${rows.length} round${rows.length > 1 ? "s" : ""} · best ${pct(Math.max(...rows.map(r => r.accuracy)))}` : "";
   }
   function renderLedger() {

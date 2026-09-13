@@ -134,72 +134,16 @@ def _iter_0(mo):
 
 **Per-class recall:** [0.0, 1.0] · **precision:** [0.0, 0.551] · **learning curve:** 49:0.551 → 73:0.551 → 98:0.551
 
-**Diagnosis** (history: *weave_api*, by *wandb_inference*): The model now predicts only the positive class (confusion [[0,83],[0,102]], recall 0 for class 0, 1.0 for class 1). This stems from extreme class imbalance in the tiny training set (train_pos_frac 0.939, only ~6 negatives out of 98) combined with over‑fitting: train accuracy is 0.939 while test accuracy is 0.551, giving a huge train‑test gap of 0.387. Earlier runs with far larger, more balanced training data (e.g., trace 01a09bd2-0c4b-7a5f-87fe-a3d9d9f305e4: acc 0.843, n_train 500; trace 01a09bd2-0d7b-7c40-901a-d9d1824f07b9: acc 0.870, n_train 500; trace 01a09bd2-1dcb-7d1e-9fbe-65fca8754d2b: acc 0.859, n_train 735) achieved high accuracy and much smaller gaps, showing that the current failure is not due to model choice or hyper‑parameters (class_weight balanced was already tried) but to insufficient minority‑class examples and resulting over‑fit to the majority. The learning curve is flat (0.551 across 49‑98 samples), confirming a plateau caused by data starvation rather than model capacity.
+**Diagnosis** (history: *weave_api*, by *wandb_inference*): The model is dramatically overfitting to the overwhelmingly positive training set (train_accuracy 0.939 vs test_accuracy 0.551, train‑test gap 0.387). The training data is extremely imbalanced (train_pos_frac 0.939) and contains very few negative examples, so the classifier learns to predict only the positive class (confusion matrix shows 0 true negatives, recall for class 0 = 0). The learning curve is flat (accuracy ≈ 0.551 for n_train = 49, 73, 98), indicating a performance plateau caused by lack of informative minority samples rather than model capacity. Past attempts to mitigate this—switching to random_forest and gradient_boosting, tuning depth, and applying class_weight='balanced' (traces 01a09bd2-1c13, 01a09bd2-1c1a, 01a09bd2-1c1b, 01a09bd2-1c15)—did not improve the situation, confirming that the core issue is data‑starvation of the minority class and severe class imbalance, leading to overfitting and a plateau.
 
-**Evidence tags:** class_imbalance, data_starved, overfitting, plateau  
-**Traces it cited:** `01a09bd2-0c4b-7a5f-87fe-a3d9d9f305e4`, `01a09bd2-0d7b-7c40-901a-d9d1824f07b9`, `01a09bd2-1dcb-7d1e-9fbe-65fca8754d2b`
+**Evidence tags:** overfitting, class_imbalance, data_starved, plateau  
+**Traces it cited:** `01a09bd2-1c13-7d8d-98b4-1ca7874b3113`, `01a09bd2-1c1a-75c9-9820-30c483636d54`, `01a09bd2-1c1b-72cc-bb82-dbec8a7d4727`, `01a09bd2-1c15-7d8c-bbca-a3b40737bbb5`, `01a09bd2-1cdd-7ed5-b1fd-ebed62b866b3`, `01a09c11-2b84-7289-96db-88fd46e3dc5d`
 
 **Action taken** (decided by *typesafe (jev-1.13.0)*): `acquire_data({'site': 'cleveland'})`
 
-**Action-head probabilities** (TypeSafe Jev, confidence 0.98): acquire_data 0.99, switch_model 0.01, transform_features 0.00, tune_hyperparams 0.00, request_code_fix 0.00
+**Action-head probabilities** (TypeSafe Jev, confidence 0.89): acquire_data 0.91, switch_model 0.04, tune_hyperparams 0.02, transform_features 0.02, request_code_fix 0.01
 
-**Decision cost:** 0.30 s, tokens in/out 2665/221 (`typesafe`)
-
----
-        """
-    )
-    return
-
-@app.cell
-def _iter_1(mo):
-    mo.md(
-        r"""
-## Iteration 1
-**Accuracy:** 0.724 (balanced 0.717, train 0.809, gap +0.084) — n_train=340, n_test=185, sites=['switzerland', 'cleveland'], model=`knn`, feature_ops=[]
-
-**Per-class recall:** [0.651, 0.784] · **precision:** [0.711, 0.734] · **learning curve:** 170:0.714 → 255:0.697 → 340:0.724
-
-**Effect of previous action** `acquire_data({'site': 'cleveland'})`: 0.551 → 0.724 (Δ +0.173)
-
-**Diagnosis** (history: *weave_api*, by *wandb_inference*): The model is limited mainly by the small amount of training data (n_train=340). The learning curve shows accuracy rising from 0.7135 at 170 samples to 0.7243 at 340, and historical runs with larger datasets (e.g., 575 samples → acc 0.697, 735 samples → acc 0.859) demonstrate that more data improves performance. This data starvation also hampers the model's ability to learn the minority (negative) class, reflected in the lower recall (0.651) and the confusion matrix (29 false positives, 22 false negatives). The train‑test gap of 0.0845 indicates mild overfitting, but the relatively low train accuracy (0.809) compared to earlier runs (≈0.87) suggests the model is also underfitting given the limited data. Together, insufficient data and class imbalance are the primary drivers of the current underperformance.
-
-**Evidence tags:** data_starved, class_imbalance, underfitting, overfitting  
-**Traces it cited:** `01a09bd2-1c26-7c43-b2d8-d47d352493dd`, `01a09bd2-1c45-700c-b8fd-8660e3282c17`, `01a09bd2-1dcb-7d1e-9fbe-65fca8754d2b`, `01a09c11-2b84-7289-96db-88fd46e3dc5d`
-
-**Action taken** (decided by *typesafe (jev-1.13.0)*): `acquire_data({'site': 'hungary'})`
-
-**Action-head probabilities** (TypeSafe Jev, confidence 0.91): acquire_data 0.92, switch_model 0.05, tune_hyperparams 0.02, transform_features 0.01, request_code_fix 0.00
-
-**Decision cost:** 0.17 s, tokens in/out 2555/212 (`typesafe`)
-
----
-        """
-    )
-    return
-
-@app.cell
-def _iter_2(mo):
-    mo.md(
-        r"""
-## Iteration 2
-**Accuracy:** 0.697 (balanced 0.702, train 0.788, gap +0.091) — n_train=575, n_test=185, sites=['switzerland', 'cleveland', 'hungary'], model=`knn`, feature_ops=[]
-
-**Per-class recall:** [0.747, 0.657] · **precision:** [0.639, 0.761] · **learning curve:** 287:0.714 → 431:0.724 → 575:0.697
-
-**Effect of previous action** `acquire_data({'site': 'hungary'})`: 0.724 → 0.697 (Δ -0.027)
-
-**Diagnosis** (history: *weave_api*, by *wandb_inference*): The model’s test accuracy (0.697) is notably lower than its training accuracy (0.788), yielding a train‑test gap of 0.09, which signals overfitting to the training distribution. More tellingly, the learning curve drops as more samples are added (0.7135 → 0.7243 → 0.6973), and the most recent data acquisition from the Hungarian site caused a performance dip (0.724 → 0.697, Δ‑0.027). This suggests a domain shift or quality issue in the newly added data that harms generalisation. Additionally, the positive class recall falls to 0.657 while the test set has a higher positive fraction (0.551 vs 0.501 in training), indicating a mild class‑imbalance mismatch that further hurts the minority class. Together, these point to overfitting compounded by distributional drift from the added Hungarian data and a slight class‑imbalance mismatch.
-
-**Evidence tags:** overfitting, class_imbalance  
-**Traces it cited:** `01a09c11-f2c1-734b-93e5-ee5224440e69`, `01a09bd2-1c10-74d0-974b-62b508fb07ab`, `01a09bd2-1c13-7d8d-98b4-1ca7874b3113`
-
-**Action taken** (decided by *wandb_inference override (jev confidence 0.13 < 0.4)*): `acquire_data({'site': 'va'})`
-
-**Action-head probabilities** (TypeSafe Jev, confidence 0.13): switch_model 0.30, tune_hyperparams 0.27, transform_features 0.23, acquire_data 0.19, request_code_fix 0.01
-
-**Confidence gate:** Jev confidence 0.13 < floor 0.4 → second opinion (W&B Inference) said **override**: Switching to random_forest has already been attempted without yielding a performance gain. The diagnosis points to domain shift from the Hungarian data and a modest class‑imbalance mismatch. The most promising remedy is to enrich the training set with data from a different source to counteract the drift, rather than further model changes that have already been explored.
-
-**Decision cost:** 0.25 s, tokens in/out 2514/203 (`typesafe`)
+**Decision cost:** 0.31 s, tokens in/out 2316/222 (`typesafe`)
 
 ---
         """

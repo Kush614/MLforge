@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>About AgentForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #f7f7f5; --panel: #ffffff; --panel-2: #f1f1ee; --border: #e4e4df; --border-2: #d2d2cb;
+    --ink: #1a1a1a; --ink-2: #4d4d4d; --ink-3: #8a8a85;
+    --green: #0f8f6e; --green-soft: rgba(15,143,110,.12); --red: #d64540; --amber: #b8860b; --blue: #3b6fd6;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding-inline: 20px; padding-block: 0 80px; }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  nav { display: flex; align-items: center; gap: 16px; padding-block: 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  nav b { font-weight: 600; } nav a { color: var(--ink-2); text-decoration: none; } nav a:hover { color: var(--ink); }
+  nav .sp { flex: 1; } nav .mono { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+  header.hero { padding-block: 44px 24px; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
+  @media (max-width: 860px) { header.hero { grid-template-columns: 1fr; } }
+  .eyebrow { font-family: var(--mono); font-size: 12px; color: var(--green); letter-spacing: .04em; margin-bottom: 10px; }
+  h1 { font-size: 40px; line-height: 1.1; letter-spacing: -.02em; margin: 0 0 14px; font-weight: 600; text-wrap: balance; }
+  .lede { font-size: 18px; color: var(--ink-2); max-width: 52ch; margin: 0 0 18px; text-wrap: pretty; }
+  .facts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .fact { font-family: var(--mono); font-size: 12px; padding: 4px 10px; border: 1px solid var(--border-2); border-radius: 999px; color: var(--ink-2); background: var(--panel); }
+  h2 { font-size: 24px; letter-spacing: -.01em; margin: 56px 0 12px; font-weight: 600; text-wrap: balance; }
+  h3 { font-size: 17px; margin: 28px 0 8px; font-weight: 600; }
+  p { max-width: 68ch; text-wrap: pretty; }
+  p.note { color: var(--ink-2); }
+  code, .mono { font-family: var(--mono); font-size: .92em; }
+  code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+  figure { margin: 18px 0 8px; }
+  figure img { display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
+  figcaption { font-size: 13px; color: var(--ink-3); margin-top: 8px; max-width: 80ch; }
+  .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  @media (max-width: 860px) { .two, .three { grid-template-columns: 1fr; } }
+  .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+  @media (max-width: 860px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+  .step { border: 1px solid var(--border); border-radius: 10px; background: var(--panel); padding: 14px 16px; }
+  .step .n { font-family: var(--mono); font-size: 12px; color: var(--green); margin-bottom: 4px; }
+  .step b { display: block; margin-bottom: 4px; } .step span { font-size: 13.5px; color: var(--ink-2); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 14px 0; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-weight: 600; font-size: 12.5px; color: var(--ink-2); background: var(--panel-2); }
+  tr:last-child td { border-bottom: 0; }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tbl { overflow-x: auto; }
+  .chip { display: inline-block; font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border-2); color: var(--ink-2); white-space: nowrap; }
+  .chip.live { color: var(--green); border-color: rgba(15,143,110,.5); background: var(--green-soft); }
+  .chip.partial { color: var(--amber); border-color: rgba(184,134,11,.5); background: rgba(184,134,11,.1); }
+  .sponsor { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); padding: 20px 22px; margin: 16px 0; }
+  .sponsor .h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .sponsor .h b { font-size: 17px; } .sponsor .h .role { color: var(--ink-3); font-size: 14px; }
+  .sponsor .h .chip { margin-left: auto; }
+  .sponsor ul { margin: 8px 0 0; padding-left: 20px; } .sponsor li { margin: 3px 0; max-width: 78ch; }
+  blockquote { margin: 12px 0; padding: 10px 14px; border-left: 3px solid var(--border-2); color: var(--ink-2); font-size: 14px; max-width: 78ch; }
+  .rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } @media (max-width: 860px) { .rules { grid-template-columns: 1fr; } }
+  .rule { border: 1px solid var(--border); border-radius: 10px; background: var(--panel); padding: 14px 16px; font-size: 14px; } .rule b { display: block; margin-bottom: 4px; }
+  footer { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 13px; color: var(--ink-3); display: flex; gap: 14px; flex-wrap: wrap; }
+  a { color: var(--blue); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><b>AgentForge</b><a href="/">console</a><a href="#loop">how it works</a><a href="#sponsors">sponsors</a><a href="#results">results</a><a href="#honesty">honesty</a><span class="sp"></span><span class="mono">CoreWeave Hacks · Sep 12–13, 2026</span></nav>
+
+  <header class="hero">
+    <div>
+      <div class="eyebrow">an autonomous agent loop · built in one weekend</div>
+      <h1>A model that trains, tests itself, works out what's wrong, and fixes it.</h1>
+      <p class="lede">AgentForge closes the slowest loop in applied machine learning — the human staring at metrics, guessing whether to get more data, change the model, or reshape the features. The agent makes that call, one move per round, and every call is observable.</p>
+      <div class="facts"><span class="fact">UCI Heart Disease · 4 hospitals</span><span class="fact">starts at 55%</span><span class="fact">target 85%</span><span class="fact">5 sponsor tools, all load-bearing</span></div>
+    </div>
+    <figure style="margin:0"><img src="shots/console-round3-decision.png" alt="The AgentForge console: a flowchart of the loop, a plain-language caption, the accuracy chart, and a transcript of every function call."><figcaption>The live console during a replayed run: the loop on top, a plain-language caption of what the agent just did, the score round by round, and the transcript of real function calls on the right.</figcaption></figure>
+  </header>
+
+  <h2 id="loop">How the loop works</h2>
+  <p>The task is deliberately small so the <em>loop</em> is the star: predict heart disease from 13 patient measurements, using public, anonymised data from four hospitals. A fixed 20% of every hospital is held out as the exam and never trained on. The agent starts with only the smallest, most skewed hospital (Switzerland, 123 patients, 93% positive) — where a model scores 55% by guessing "everyone is sick" — and must earn its way to 85%.</p>
+  <div class="steps">
+    <div class="step"><div class="n">1 · Train</div><b>Fit a model on the data it has</b><span>Any of five model families plus a feature pipeline, chosen by earlier moves.</span></div>
+    <div class="step"><div class="n">2 · Score</div><b>Same held-out exam every round</b><span>Accuracy, per-class recall, train/test gap and a learning-curve point — the evidence.</span></div>
+    <div class="step"><div class="n">3 · Diagnose</div><b>Read its own history, explain why</b><span>A reasoning model (W&amp;B Inference) reads the score <em>and</em> the agent's own Weave traces, cites them, and tags the problem.</span></div>
+    <div class="step"><div class="n">4 · Decide</div><b>Pick exactly one move</b><span>TypeSafe's Jev picks one typed action with a probability on every option: get data, change model, reshape features, tune settings, or ask for a code fix.</span></div>
+  </div>
+  <figure><img src="shots/flow-round3-decision.png" alt="The animated flowchart: hospitals feed data into Train, Score, Diagnose, Decide; a loop-back arrow applies the move; a memory strip shows recorded rounds."><figcaption>The flowchart is live: hospitals light up as they are unlocked (red when a poisoned one hurt), the score gauge fills toward the amber target tick, the diagnosis appears as plain tags, and the five decision branches are drawn with length = probability. The memory strip grows one plate per round; step 3 reads it back.</figcaption></figure>
+  <p>The move is applied, and the next round's score is the measured effect of that move — recorded in an effect ledger the agent can read. It stops when it beats the target, when three moves in a row do nothing, or when it runs out of rounds. Nothing is cherry-picked: same seed, same exam, every round.</p>
+  <div class="two">
+    <figure><img src="shots/caption-round3.png" alt="Caption: It decided to tune the current model's settings — 46% sure. Decided by typesafe (jev-1.13.0) in 0.34 s."><figcaption>Every step is narrated in one everyday sentence — accuracy in percent, deltas in points, decisions with how sure the agent was.</figcaption></figure>
+    <figure><img src="shots/sidebar-ledger.png" alt="Sidebar: list of runs, 'what each move did' ledger with +17.3 pts, -3.8 pts, +11.9 pts, and steering controls."><figcaption>The ledger: what each move did, in points, on the fixed exam. Below it, the cockpit — a human can change the target or block a hospital mid-run, and the loop records that a human did it.</figcaption></figure>
+  </div>
+
+  <h2>The memory test: does it learn from its own mistakes?</h2>
+  <p>To make "memory" more than a slogan, one run secretly flips 40% of the labels in the VA hospital's training rows (test rows untouched, documented in the config and every log — the agent is simply not told). The question is whether it notices from its own results.</p>
+  <figure><img src="shots/console-round2-diagnose.png" alt="Round 2 of the poisoned run: the score fell to 68.6%, -3.8 pts after adding VA; the caption says the last move hurt."><figcaption>Round 2 of the poisoned run: after unlocking VA the score fell 3.8 points. The ledger shows it, the diagnosis cites the earlier traces, and on the next decision the action head's confidence collapsed from 0.85 to 0.53 and then 0.26 — below the 0.40 floor, so the loop asked the reasoning model for a second opinion.</figcaption></figure>
+  <p>That run plateaued at 82.7% and stopped honestly instead of pretending. Without the poison, the same loop beats 85% in four to eight rounds. Both outcomes are in the console's run list.</p>
+
+  <h2 id="sponsors">Sponsors — what each one actually does in the loop</h2>
+  <p>Track: <b>Best Use of Weave</b>. Each tool has a job the loop cannot do without; each one's status below is what really ran during the hackathon.</p>
+
+  <div class="sponsor" id="weave">
+    <div class="h"><b>Weave</b><span class="role">the agent's memory and the judges' evidence</span><span class="chip live">live</span></div>
+    <ul>
+      <li>Every function that trains, scores, diagnoses, decides or acts is a <code>@weave.op</code>; one round is one navigable trace tree.</li>
+      <li>Before diagnosing, the agent queries its own past <code>evaluate</code>/<code>act</code> calls through the Weave client (<code>history.py</code>) and the prompt asks the reasoning model to list the trace IDs it relied on — they appear in the trace and the lab report (<code>cited_trace_ids</code>), e.g. <code class="mono">01a09bc9-28d7-…</code>.</li>
+      <li>The three-way decision-maker comparison is a <code>weave.Evaluation</code> (see results).</li>
+    </ul>
+  </div>
+
+  <div class="sponsor" id="inference">
+    <div class="h"><b>W&amp;B Inference</b><span class="role">the reasoning brain</span><span class="chip live">live</span></div>
+    <ul>
+      <li>Diagnosis runs on <code>openai/gpt-oss-120b</code> through the OpenAI-compatible endpoint; strict JSON out, one repair retry, honest fallback labels if it fails.</li>
+      <li>Also the second opinion: when the fast decision head is unsure, Inference critiques the proposal against the effect ledger and may override it with a validated action.</li>
+    </ul>
+    <blockquote>"The model's test accuracy (0.686) is well below the earlier peak… Adding the VA site data caused a performance drop (0.724 → 0.686)…" — a real diagnosis from the poisoned run, citing two earlier traces.</blockquote>
+  </div>
+
+  <div class="sponsor" id="typesafe">
+    <div class="h"><b>TypeSafe AI</b><span class="role">the reflexes — one typed decision with calibrated probabilities</span><span class="chip live">live</span></div>
+    <ul>
+      <li>System One (<code>jev-1.13.0</code>) does not generate text; it answers typed <em>Choice</em> questions with probabilities. The action head asks one request with five independent questions — which kind of move, and speculative branches for which model, which feature op, which hospital, which tuning preset — and code assembles the pydantic-validated action. Free text never reaches <code>act()</code>.</li>
+      <li>Options already shown useless are withdrawn from the questions, not just discouraged: memory is binding.</li>
+      <li>Its confidence is a real signal: below 0.40 the loop escalates. In the poisoned run confidence fell to 0.26 the decision after the bad acquisition.</li>
+      <li>About 0.3 s per decision versus 7–12 s for the reasoning model at similar token counts.</li>
+    </ul>
+  </div>
+
+  <div class="sponsor" id="marimo">
+    <div class="h"><b>marimo</b><span class="role">the lab notebook the agent writes about itself</span><span class="chip live">live</span></div>
+    <ul>
+      <li>marimo notebooks are plain Python, so <code>notebook_writer.py</code> appends one cell per round: the score, the effect of the last move, the diagnosis in the agent's words with cited traces, the decision with its probabilities, the cost.</li>
+      <li>The header cell charts accuracy against the target and auto-refreshes; a cockpit cell lets a human steer the running loop (target, blocked hospitals) and the loop records that it was steered.</li>
+    </ul>
+    <figure><img src="shots/marimo-report.png" alt="The marimo lab report: chart of accuracy vs target, cockpit controls, and agent-written sections per iteration."><figcaption>The self-written lab report in marimo after a live run.</figcaption></figure>
+  </div>
+
+  <div class="sponsor" id="aria">
+    <div class="h"><b>ARIA</b><span class="role">the code-fixing arm</span><span class="chip partial">protocol built · no live fix yet</span></div>
+    <ul>
+      <li>When every typed move is exhausted, the agent emits <code>request_code_fix</code>: a structured request (<code>aria_requests/NNN.md</code>) with the diagnosis, the failing trace IDs, and an acceptance test, asking for a <em>new</em> model family or feature op to be registered in <code>extensions.py</code>.</li>
+      <li>When <code>NNN.applied</code> lands, the loop reloads the module, re-runs the acceptance test, records who applied it (ARIA or manual-assisted) — and the new option appears in the agent's action space next round. The agent expands its own action space; the trace says who expanded it.</li>
+      <li>Honest status: the file protocol is implemented and tested; a live ARIA-executed fix has not been run yet.</li>
+    </ul>
+  </div>
+
+  <h2 id="results">Results</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Run</th><th>What happened</th><th>Rounds</th><th>Final</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">clean, Inference-decided</td><td>unlock Hungary → 0.854</td><td class="num">4</td><td class="num">85.4% ✓</td></tr>
+      <tr><td class="mono">clean, TypeSafe-decided</td><td>two acquisitions, tuning, then switch to logistic regression</td><td class="num">8</td><td class="num">85.9% ✓</td></tr>
+      <tr><td class="mono">poison_va (40% label noise)</td><td>VA acquisition hurt (−3.8 pts); confidence gate fired 3×; plateaued and stopped</td><td class="num">9</td><td class="num">82.7% best</td></tr>
+      <tr><td class="mono">offline dry run (rule-based brain)</td><td>same action space, no network — the harness must always work</td><td class="num">5</td><td class="num">86.5% ✓</td></tr>
+    </tbody>
+  </table></div>
+  <figure><img src="shots/chart-poison.png" alt="Accuracy per round for the poisoned run against the target and published baseline lines."><figcaption>Accuracy round by round for the poisoned run. Annotations name the move taken at each point.</figcaption></figure>
+
+  <h3>Which decision-maker decides better? A Weave evaluation</h3>
+  <p>The same 9 recorded diagnoses were replayed through three decision heads. For each proposed move we re-applied it to the recorded state, retrained on the same fixed split and measured the real change in held-out accuracy.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Head</th><th>Valid typed action</th><th>Agrees with the live run</th><th>Mean counterfactual Δ accuracy</th><th>Mean latency</th><th>Mean tokens</th></tr></thead>
+    <tbody>
+      <tr><td>rules (heuristic baseline)</td><td class="num">9/9</td><td class="num">5/9</td><td class="num">+0.054</td><td class="num">0.00 s</td><td class="num">0</td></tr>
+      <tr><td>TypeSafe Jev 1.13</td><td class="num">9/9</td><td class="num">8/9</td><td class="num">+0.046</td><td class="num">0.35 s</td><td class="num">2,469</td></tr>
+      <tr><td>W&amp;B Inference gpt-oss-120b</td><td class="num">9/9</td><td class="num">5/9</td><td class="num">+0.038</td><td class="num">7.19 s</td><td class="num">2,482</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Honest read: with nine samples the accuracy differences are noise, and a rule baseline is competitive on a toy dataset. What is not noise: the structured head is ~20× faster than the reasoning model at the same token cost and gives a probability on every option, which the loop uses as a gate. No dollar figures are shown because no price sheet was available — the code reports "n/a" rather than a guess.</p>
+
+  <h2 id="honesty">Rules we never break</h2>
+  <div class="rules">
+    <div class="rule"><b>Everything observable</b>Every training, scoring, diagnosing and acting function is traced. Tracing is never removed to "clean up".</div>
+    <div class="rule"><b>Honest logs only</b>A sponsor tool appears in a log only if its call succeeded. Fallbacks are labeled with their cause, in the trace, the terminal and the report.</div>
+    <div class="rule"><b>Actions are typed</b>The agent can only act through pydantic action models. Free text never reaches the executor.</div>
+    <div class="rule"><b>Fixed exam</b>A stratified test split from every hospital is held out before round 0. Getting more data only grows the training pool.</div>
+    <div class="rule"><b>Always runnable</b><code>python -m agentforge.loop --dry-run</code> runs the whole loop offline with a rule-based brain, and must pass before every commit (71 tests).</div>
+    <div class="rule"><b>Built this weekend</b>Thirteen commits, all on Sep 13, 2026. No code imported from prior projects.</div>
+  </div>
+
+  <h2>Also in the box</h2>
+  <div class="two">
+    <figure><img src="shots/code-pane.png" alt="The code pane showing the real source of decide_action() with the executing lines highlighted."><figcaption>The console's second tab shows the actual source of each traced function, fetched from the backend with <code>inspect.getsource</code>, highlighted while it executes.</figcaption></figure>
+    <figure><img src="shots/loop3d.png" alt="A 3D replay of a run: loop stations, hospital data cells, a memory stack and an accuracy column."><figcaption>An earlier 3D replay of the loop (<code>demo/loop3d.html</code>), kept as a standalone page.</figcaption></figure>
+  </div>
+
+  <footer><span>AgentForge · CoreWeave Hacks 2026</span><span>Python 3.12 · scikit-learn · FastAPI + SSE · Weave · W&amp;B Inference · TypeSafe System One · marimo</span><span><a href="/">Open the console</a></span></footer>
+</div>
+</body>
+</html>

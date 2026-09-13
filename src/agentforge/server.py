@@ -129,6 +129,19 @@ def index():
     return FileResponse(DEMO_DIR / "index.html")
 
 
+@app.get("/about")
+def about():
+    return FileResponse(DEMO_DIR / "about.html")
+
+
+@app.get("/shots/{name}")
+def shots(name: str):
+    p = (DEMO_DIR / "shots" / name).resolve()
+    if (DEMO_DIR / "shots").resolve() not in p.parents or not p.is_file():
+        raise HTTPException(404)
+    return FileResponse(p)
+
+
 @app.get("/api/status")
 def status():
     return _status()
