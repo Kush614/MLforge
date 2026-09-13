@@ -44,3 +44,52 @@ Code tab, 3D page, terminal, dry runs.
 - Stubbed? ARIA live fix not yet executed (protocol built); hosted MCP not wired (Weave client
   API used). Everything else ran live.
 - Poisoned run missed target? It plateaued at 83% and stopped — the honest behaviour we want.
+
+---
+
+## Word-for-word (≈390 words, 3:00 at a calm pace)
+
+[T-90 s: composer → poison off, --iterations 8 → Run. Console tab up, poison_va visible.]
+
+0:00 HOOK (live run on round 1–2)
+"The slow part of machine learning isn't training. It's the human staring at metrics
+afterwards, guessing — more data? different model? different features? — and trying again.
+We made that guess the agent's job. And we made every guess observable."
+
+0:20 THE LOOP (point at the flowchart as the dot moves)
+"This is it running live right now. It started with one small hospital and a bad model —
+55 percent, which is just guessing 'everyone's sick.' Every round it trains, takes the same
+fixed exam, diagnoses what's wrong, and picks exactly one move."
+(Diagnose) "The diagnosis is a reasoning model on W&B Inference — but before it reasons, it
+reads its own history. Those tags come with the Weave trace IDs it cited. Its memory is its
+own trace history."
+(five branches) "The move is picked by TypeSafe's Jev — a model that doesn't write text, it
+answers typed questions with a probability on every option. Three hundred milliseconds,
+nothing to parse, and it can't produce an illegal move."
+(when a Δ banner lands, read the caption) "Plus seventeen points — the last move helped.
+That's on the same held-out exam every round, so it's a measured effect, not a story."
+
+1:20 HARD CUT even mid-round → click poison_va, then › twice
+"Here's the part I care about. In this run we secretly corrupted one hospital's labels.
+Watch: it unlocked VA, the score fell almost four points — (red hospital) — and on the next
+decision its confidence collapsed. When confidence drops below forty percent, the loop asks
+the reasoning model for a second opinion. (amber badge) Nobody told it VA was bad. It learned
+that from its own ledger — and when it ran out of good moves, it stopped, rather than pretend."
+
+2:10 WEAVE TAB → newest diagnose call → output
+"Every decision you've seen is one click deep in Weave — here are the trace IDs that
+diagnosis cited. And we replayed the same diagnoses through three decision-makers in a Weave
+evaluation: TypeSafe, the reasoning model, and plain rules. Honest answer: on nine decisions
+they're within noise on accuracy — but Jev is twenty times faster and gives us a confidence
+we can gate on."
+
+2:40 CONSOLE → click lab_report_run
+"On its own, this thing went from fifty-five to eighty-seven percent in six rounds — past the
+target and past the published number — and wrote its own lab report about how."
+
+2:50 CLOSE
+"Weave is its memory. W&B Inference is its reasoning. TypeSafe is its reflexes. marimo is its
+notebook. And when it runs out of moves, it writes a fix request for ARIA. Ask us about any
+round." (Stop talking.)
+
+If the live run stalls: click lab_report_run and keep narrating — the words work on the replay.
